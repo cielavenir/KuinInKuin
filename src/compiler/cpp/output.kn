@@ -1302,7 +1302,9 @@ func write(resFiles: list<[]char>)
 		
 		var writer: file@Writer :: file@makeWriter(\option@outputFile ~ ".cpp", false)
 		do writer.writeStr("#include <cstdint>\n")
-		if(^@classTable <> 0)
+		if(^@classTable = 0)
+			do writer.writeStr("static int64_t classTable_[1];\n")
+		else
 			do writer.writeStr("static int64_t classTable_[\{^@classTable}];\n")
 		end if
 		do writer.writeStr("#include \"common.h\"\n")
