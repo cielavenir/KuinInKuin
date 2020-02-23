@@ -523,14 +523,13 @@ static Array_<char16_t>* toStr_(uint64_t v) noexcept {
 }
 static Array_<char16_t>* toStr_(Array_<char16_t>* v) noexcept {
 	std::u16string s = v->B;
-	const std::string& t = utf16ToUtf8_(s);
 	Array_<char16_t>* r = new Array_<char16_t>();
-	r->L = static_cast<int64_t>(t.size());
-	r->B = new char16_t[t.size() + 1];
+	r->L = static_cast<int64_t>(s.size());
+	r->B = new char16_t[s.size() + 1];
 	int64_t p = 0;
-	for (char c : t)
+	for (char16_t c : s)
 		r->B[p++] = c;
-	r->B[t.size()] = 0;
+	r->B[s.size()] = 0;
 	return r;
 }
 
@@ -1056,6 +1055,51 @@ static void init_() {
 	rY_ = 362436069;
 	rZ_ = 521288629 * t;
 	rW_ = 88675123 * (rZ_ >> 1);
+
+	setlocale(LC_ALL, "");
 }
 
 Array_<char16_t> delimiter_(3,',',' ','\n');
+
+static wchar_t ReadIo_(void)
+{
+	wchar_t c = fgetwc(stdin);
+	if (c == L'\0')
+		return L'\0';
+	{
+		int64_t i;
+		for (i = 0; i < delimiter_.Len(); i++)
+		{
+			if (c == delimiter_.B[i] || (c == L'\r' && delimiter_.B[i] == L'\n'))
+				return L'\0';
+		}
+	}
+	return c;
+}
+
+#define STACK_STRING_BUF_SIZE 1024
+
+static uint64_t ModMul(uint64_t a, uint64_t b, uint64_t modulus)
+{
+	uint64_t result = 0;
+	while (a != 0)
+	{
+		if ((a & 1) != 0)
+			result = (result + b) % modulus;
+		a >>= 1;
+		b = (b << 1) % modulus;
+	}
+	return result;
+}
+static uint64_t ModPow(uint64_t value, uint64_t exponent, uint64_t modulus)
+{
+	uint64_t w = 1;
+	while (exponent > 0)
+	{
+		if ((exponent & 1) != 0)
+			w = ModMul(w, value, modulus);
+		value = ModMul(value, value, modulus);
+		exponent >>= 1;
+	}
+	return w;
+}
