@@ -4,25 +4,25 @@ end func
 func [d0002.knd] _fin()
 end func
 
-+func [d0002.knd, _delimiter] delimiter(delimiters: []char)
++func [__raw, cui_delimiter] delimiter(delimiters: []char)
 end func
 
 +func [__raw, cui_print] print(str: []char)
 end func
 
-+func [d0002.knd, _inputLetter] inputLetter(): char
++func [__raw, cui_inputLetter] inputLetter(): char
 end func
 
-+func [d0002.knd, _inputInt] inputInt(): int
++func [__raw, cui_inputInt] inputInt(): int
 end func
 
-+func [d0002.knd, _inputFloat] inputFloat(): float
++func [__raw, cui_inputFloat] inputFloat(): float
 end func
 
-+func [d0002.knd, _inputChar] inputChar(): char
++func [__raw, cui_inputChar] inputChar(): char
 end func
 
-+func [d0002.knd, _inputStr] inputStr(): []char
++func [__raw, cui_inputStr] inputStr(): []char
 end func
 
 +func [__raw, cui_input] input(): []char

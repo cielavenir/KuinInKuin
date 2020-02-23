@@ -1057,3 +1057,5 @@ static void init_() {
 	rZ_ = 521288629 * t;
 	rW_ = 88675123 * (rZ_ >> 1);
 }
+
+Array_<char16_t> delimiter_(3,',',' ','\n');
