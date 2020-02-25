@@ -14,3 +14,4 @@ cd $dir
 ./codes.rb math_knapsack.cpp weights_ values_ maxWeight_ reuse_
 ./codes.rb math_prime.cpp n_
 ./codes.rb math_primeFactors.cpp n_
+./codes.rb math_dijkstra.cpp from_nodes_ to_nodes_ values_ begin_nodes_
