@@ -1,0 +1,58 @@
+func [d0003.knd, _init] _init()
+end func
+
++func [__raw, math_gcd] gcd(a: int, b: int): int
+end func
+
++func [__raw, math_lcm] lcm(a: int, b: int): int
+end func
+
++func [__raw, math_modPow] modPow(value: int, exponent: int, modulus: int): int
+end func
+
++func [__raw, math_modMul] modMul(a: int, b: int, modulus: int): int
+end func
+
++func [__raw, math_prime] prime(n: int): bool
+end func
+
++func [__raw, math_primeFactors] primeFactors(n: int): []int
+end func
+
++func [__raw, math_gamma] gamma(n: float): float
+end func
+
++func [__raw, math_fact] fact(n: float): float
+end func
+
++func [__raw, math_factInt] factInt(n: int): int
+end func
+
++func [__raw, math_fibonacci] fibonacci(n: int): int
+end func
+
++func [__raw, math_knapsack] knapsack(weights: []int, values: []int, maxWeight: int, reuse: bool): int
+end func
+
++func [__raw, math_dijkstra] dijkstra(nodeNum: int, fromNodes: []int, toNodes: []int, values: []int, beginNode: int): []int
+end func
+
++func [__raw, math_bellmanFord] bellmanFord(nodeNum: int, fromNodes: []int, toNodes: []int, values: []int, beginNode: int): []int
+end func
+
++func [d0003.knd, _floydWarshall] floydWarshall(nodeNum: int, fromNodes: []int, toNodes: []int, values: []int): [][]int
+end func
+
+{
++class Mat()
+	*func [d0003.knd, _matDtor, _force] _dtor()
+	end func
+
+	var row: int
+	var col: int
+	var buf: int
+end class
+
++func [d0003.knd, _makeMat, _make_instance] makeMat(me2: @Mat, row: int, col: int): @Mat
+end func
+}
