@@ -1,24 +1,22 @@
-	THROWDBG(*(S64*)((U8*)from_nodes + 0x08) != *(S64*)((U8*)to_nodes + 0x08) || *(S64*)((U8*)to_nodes + 0x08) != *(S64*)((U8*)values + 0x08), EXCPT_DBG_ARG_OUT_DOMAIN);
-	THROWDBG(node_num <= 0 || begin_node < 0 || node_num <= begin_node, EXCPT_DBG_ARG_OUT_DOMAIN);
+	//THROWDBG(*(S64*)((U8*)from_nodes + 0x08) != *(S64*)((U8*)to_nodes + 0x08) || *(S64*)((U8*)to_nodes + 0x08) != *(S64*)((U8*)values + 0x08), EXCPT_DBG_ARG_OUT_DOMAIN);
+	//THROWDBG(node_num <= 0 || begin_node < 0 || node_num <= begin_node, EXCPT_DBG_ARG_OUT_DOMAIN);
 	const S64* from_nodes2 = \{from_nodes_.id}->B;
 	const S64* to_nodes2 = \{to_nodes_.id}->B;
 	const S64* values2 = \{values_.id}->B;
-	S64 len = *(S64*)((U8*)from_nodes + 0x08);
+	S64 len = \{from_nodes_.id}->L;
 	S64 i;
-#if defined(DBG)
-	for (i = 0; i < len; i++)
-		THROWDBG(from_nodes2[i] < 0 || node_num <= from_nodes2[i] || to_nodes2[i] < 0 || node_num <= to_nodes2[i] || values2[i] < 0, EXCPT_DBG_ARG_OUT_DOMAIN);
-#endif
+	//for (i = 0; i < len; i++)
+	//	THROWDBG(from_nodes2[i] < 0 || node_num <= from_nodes2[i] || to_nodes2[i] < 0 || node_num <= to_nodes2[i] || values2[i] < 0, EXCPT_DBG_ARG_OUT_DOMAIN);
 
-	Array<inr64_t> *result=new Array<inr64_t>();
+	Array<int64_t> *result=new Array<int64_t>();
 	result->L = node_num;
 	result->B = new inr64_t[node_num+1];
 	S64* distance = result->B;
 	for (i = 0; i < node_num; i++)
 		distance[i] = LLONG_MAX;
-	distance[begin_node] = 0;
+	distance[\{begin_nodes_.id}] = 0;
 
-	S64* heap = (S64*)AllocMem(sizeof(S64) * (2 * (size_t)(node_num * len) + 2));
+	S64* heap = (S64*)malloc(sizeof(S64) * (2 * (size_t)(node_num * len) + 2));
 	int heap_cnt = 1;
 	heap[0] = begin_node;
 	heap[1] = 0;
@@ -93,6 +91,6 @@
 			}
 		}
 	}
-	FreeMem(heap);
+	free(heap);
 
 	return result;

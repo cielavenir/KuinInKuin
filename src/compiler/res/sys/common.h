@@ -1079,7 +1079,7 @@ static wchar_t ReadIo_(void)
 
 #define STACK_STRING_BUF_SIZE 1024
 
-typedef struct
+typedef struct IntList
 {
 	int64_t Value;
 	struct IntList* Next;
@@ -3626,6 +3626,33 @@ const uint8_t* GetPrimesBin(size_t* size)
 	*size = 0x00013880;
 	return output_dat_bin;
 }
+int64_t _gcd(int64_t a, int64_t b){
+	if (a == 0)
+	{
+		return b;
+	}
+	if (b == 0)
+		return a;
+	if (a < 0)
+		a = -a;
+	if (b < 0)
+		b = -b;
+	int64_t r;
+	if (b > a)
+	{
+		r = a;
+		a = b;
+		b = r;
+	}
+	for (; ; )
+	{
+		r = a % b;
+		if (r == 0)
+			return b;
+		a = b;
+		b = r;
+	}
+}
 static uint64_t ModMul(uint64_t a, uint64_t b, uint64_t modulus)
 {
 	uint64_t result = 0;
@@ -3711,7 +3738,7 @@ static bool _prime(int64_t n)
 				x = ModPow(x, 2, (uint64_t)n);
 				if (x == (uint64_t)n - 1)
 				{
-					probablyPrime = True;
+					probablyPrime = true;
 					break;
 				}
 			}
@@ -3721,7 +3748,7 @@ static bool _prime(int64_t n)
 		return true;
 	}
 }
-static int64_t FindFactor(int64_t n, U32 seed)
+static int64_t FindFactor(int64_t n)
 {
 	// Pollard's rho algorithm.
 	uint64_t n2 = (int64_t)n;
@@ -3732,10 +3759,10 @@ static int64_t FindFactor(int64_t n, U32 seed)
 		if (_prime((int64_t)n2))
 			return (int64_t)n2;
 		uint64_t a = (uint64_t)xs128_() << 32;
-		a |= (uint64_t)XorShift(&seed);
+		a |= (uint64_t)xs128_();
 		uint64_t y = a % (n2 + 1);
-		uint64_t c = (uint64_t)XorShift(&seed) + 1;
-		uint64_t m = (uint64_t)XorShift(&seed) + 1;
+		uint64_t c = (uint64_t)xs128_() + 1;
+		uint64_t m = (uint64_t)xs128_() + 1;
 		uint64_t g;
 		uint64_t r = 1;
 		uint64_t q = 1;
@@ -3757,7 +3784,7 @@ static int64_t FindFactor(int64_t n, U32 seed)
 					y = (ModMul(y, y, n2) + c) % n2;
 					q = ModMul(q, x > y ? x - y : y - x, n2);
 				}
-				g = __gcd((int64_t)q, (int64_t)n2);
+				g = _gcd((int64_t)q, (int64_t)n2);
 				k += m;
 			} while (k < r && g <= 1);
 			r *= 2;
@@ -3767,7 +3794,7 @@ static int64_t FindFactor(int64_t n, U32 seed)
 			do
 			{
 				ys = (ModMul(ys, ys, n2) + c) % n2;
-				g = __gcd((int64_t)(x > ys ? x - ys : ys - x), (int64_t)n2);
+				g = _gcd((int64_t)(x > ys ? x - ys : ys - x), (int64_t)n2);
 			} while (g <= 1);
 		}
 		if (g == n2)
