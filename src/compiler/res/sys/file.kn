@@ -17,7 +17,7 @@ end enum
 	+func [__raw, file_readerGetPos] getPos(): int
 	end func
 
-	+func [__raw, _readerDelimiter] delimiter(delimiters: []char)
+	+func [__raw, file_readerDelimiter] delimiter(delimiters: []char)
 	end func
 
 	+func [d0000.knd, _readerRead] read(size: int): []bit8

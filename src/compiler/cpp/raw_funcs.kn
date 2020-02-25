@@ -791,8 +791,8 @@
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		var handle: \cpp\output@CppInfo :: search(members, "handle")
 		do codes.add("reader_* r_ = reinterpret_cast<reader_*>(\{me_.id}->\{handle.id});\n")
-		do codes.add("char16_t c_ = return readUtf8_(r_,false);\n")
-		;do codes.add("if (c_ == WEOF)\n")
+		do codes.add("char16_t c_ = readUtf8_(r_,false);\n")
+		;do codes.add("if (c_ == 0xffff)\n")
 		;do codes.add("throw \{excpt@invalidDataFmt $ bit32}U;\n")
 		do codes.add("return c_;\n")
 	case "file_readerReadChar_"
@@ -806,12 +806,12 @@
 		do codes.add("c_=readUtf8_(r_,true);\n")
 		do codes.add("if (c_ == L'\\r')\n")
 		do codes.add("continue;\n")
-		do codes.add("if (c_ == WEOF)\n")
+		do codes.add("if (c_ == 0xffff)\n")
 		do codes.add("throw \{excpt@invalidDataFmt $ bit32}U;\n")
 		do codes.add("break;\n")
 		do codes.add("}\n")
 		do codes.add("return c_;\n")
-	case "file_delimiter"
+	case "file_readerDelimiter"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		var handle: \cpp\output@CppInfo :: search(members, "handle")
