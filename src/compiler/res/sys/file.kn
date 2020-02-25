@@ -17,7 +17,7 @@ end enum
 	+func [__raw, file_readerGetPos] getPos(): int
 	end func
 
-	+func [d0000.knd, _readerDelimiter] delimiter(delimiters: []char)
+	+func [__raw, _readerDelimiter] delimiter(delimiters: []char)
 	end func
 
 	+func [d0000.knd, _readerRead] read(size: int): []bit8
@@ -27,20 +27,58 @@ end enum
 	+func [__raw, file_readerReadLetter] readLetter(): char
 	end func
 
-	+func [d0000.knd, _readerReadInt] readInt(): int
-		ret 0 { TODO: }
+	+func [__raw, file_readerReadChar_] _readChar(): char
 	end func
 
-	+func [d0000.knd, _readerReadFloat] readFloat(): float
-		ret 0.0 { TODO: }
+	+func readInt(): int
+		var s: []char :: me.readStr()
+		var b: bool :: false
+		var r: int :: s.toInt(&b)
+		if(!b)
+			throw excpt@invalidDataFmt
+		end if
+		ret r
 	end func
 
-	+func [d0000.knd, _readerReadChar] readChar(): char
-		ret '\0' { TODO: }
+	+func readFloat(): float
+		var s: []char :: me.readStr()
+		var b: bool :: false
+		var r: float :: s.toFloat(&b)
+		if(!b)
+			throw excpt@invalidDataFmt
+		end if
+		ret r
 	end func
 
-	+func [d0000.knd, _readerReadStr] readStr(): []char
-		ret null { TODO: }
+	+func readChar(): char
+		while loop(true)
+			var c: char :: me._readChar()
+			if(c <> '\0')
+				ret c
+			end if
+		end while
+	end func
+
+	+func readStr(): []char
+		var buf: []char :: ""
+		var c: char :: '\0'
+		while loop(true)
+			do c :: me._readChar()
+			if(c = '\uFFFF')
+				if(^buf = 0)
+					throw excpt@invalidDataFmt
+				end if
+				break loop
+			end if
+			if(c = '\0')
+				if(^buf = 0)
+					skip loop
+				end if
+				break loop
+			end if
+			do buf :~ c.toStr()
+		end while
+		ret buf
 	end func
 
 	+func readLine(): []char

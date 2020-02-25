@@ -1,3 +1,5 @@
+;;; in Kuin, file is always UTF-8 but cui depends on machine's locale, so fgetwc(stdin) must be used.
+
 func [d0002.knd, _init] _init()
 end func
 
@@ -13,17 +15,75 @@ end func
 +func [__raw, cui_inputLetter] inputLetter(): char
 end func
 
-+func [__raw, cui_inputInt] inputInt(): int
++func [__raw, cui_inputChar_] _inputChar(): char
 end func
 
-+func [__raw, cui_inputFloat] inputFloat(): float
++func inputChar(): char
+	while loop(true)
+		var c: char :: @_inputChar()
+		if(c <> '\0')
+			ret c
+		end if
+	end while
 end func
 
-+func [__raw, cui_inputChar] inputChar(): char
++func inputInt(): int
+	var s: []char :: @inputStr()
+	var b: bool :: false
+	var r: int :: s.toInt(&b)
+	if(!b)
+		throw excpt@invalidDataFmt
+	end if
+	ret r
 end func
 
-+func [__raw, cui_inputStr] inputStr(): []char
++func inputFloat(): float
+	var s: []char :: @inputStr()
+	var b: bool :: false
+	var r: float :: s.toFloat(&b)
+	if(!b)
+		throw excpt@invalidDataFmt
+	end if
+	ret r
 end func
 
-+func [__raw, cui_input] input(): []char
++func inputStr(): []char
+	var buf: []char :: ""
+	var c: char :: '\0'
+	while loop(true)
+		do c :: @_inputChar()
+		if(c = '\uFFFF')
+			if(^buf = 0)
+				throw excpt@invalidDataFmt
+			end if
+			break loop
+		end if
+		if(c = '\0')
+			if(^buf = 0)
+				skip loop
+			end if
+			break loop
+		end if
+		do buf :~ c.toStr()
+	end while
+	ret buf
+end func
+
++func input(): []char
+	var buf: []char :: ""
+	var c: char :: '\0'
+	while loop(true)
+		do c :: @inputLetter()
+		if(c = '\uFFFF')
+			break loop
+		end if
+		if(c = '\u000D')
+			skip loop
+		end if
+		if(c = '\n')
+			break loop
+		end if
+		do buf :~ c.toStr()
+	end while
+	ret buf
 end func

@@ -8,7 +8,7 @@
 	//for (i = 0; i < len; i++)
 	//	THROWDBG(from_nodes2[i] < 0 || node_num <= from_nodes2[i] || to_nodes2[i] < 0 || node_num <= to_nodes2[i] || values2[i] < 0, EXCPT_DBG_ARG_OUT_DOMAIN);
 
-	Array<int64_t> *result=new Array<int64_t>();
+	Array_<int64_t> *result=new Array_<int64_t>();
 	result->L = node_num;
 	result->B = new inr64_t[node_num+1];
 	S64* distance = result->B;

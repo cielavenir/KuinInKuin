@@ -960,6 +960,7 @@ static uint64_t endian_(uint64_t me_)
 struct reader_ {
 	reader_() noexcept : F(new std::ifstream()) {}
 	std::ifstream* F;
+	Array_<char16_t> *delimiter_;
 };
 
 struct writer_ {
@@ -967,7 +968,8 @@ struct writer_ {
 	std::ofstream* F;
 };
 
-static char16_t readUtf8_(std::ifstream* f) {
+static char16_t readUtf8_(reader_ *r_, bool replace_delimiter) {
+	std::ifstream* f = r_->F;
 	char c;
 	int64_t l;
 	uint64_t u;
@@ -998,6 +1000,14 @@ static char16_t readUtf8_(std::ifstream* f) {
 	}
 	if (0x00010000 <= u && u <= 0x0010ffff)
 		u = 0x20;
+	if(replace_delimiter){
+		int64_t i;
+		for (i = 0; i < r_->delimiter_->Len(); i++)
+		{
+			if (u == r_->delimiter_->B[i] || (u == L'\r' && r_->delimiter_->B[i] == L'\n'))
+				return L'\0';
+		}
+	}
 	return static_cast<char16_t>(u);
 }
 
@@ -1061,12 +1071,12 @@ static void init_() {
 
 Array_<char16_t> delimiter_(3,',',' ','\n');
 
-static wchar_t ReadIo_(void)
+static wchar_t ReadIo_(bool replace_delimiter)
 {
 	wchar_t c = fgetwc(stdin);
 	if (c == L'\0')
 		return L'\0';
-	{
+	if(replace_delimiter){
 		int64_t i;
 		for (i = 0; i < delimiter_.Len(); i++)
 		{
