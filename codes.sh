@@ -12,3 +12,5 @@ cd $dir
 ./codes.rb math_modMul.cpp a_ b_ modulus_
 ./codes.rb math_modPow.cpp value_ exponent_ modulus_
 ./codes.rb math_knapsack.cpp weights_ values_ maxWeight_ reuse_
+./codes.rb math_prime.cpp n_
+./codes.rb math_primeFactors.cpp n_

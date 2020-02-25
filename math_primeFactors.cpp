@@ -1,9 +1,9 @@
 IntList* top = NULL;
 IntList* bottom = NULL;
 int num = 0;
-while (n > 1)
+while (\{n_.id} > 1)
 {
-	S64 factor = FindFactor(n, 1);
+	S64 factor = FindFactor(\{n_.id}, 1);
 	IntList* node = (IntList*)malloc(sizeof(IntList));
 	node->Value = factor;
 	node->Next = NULL;
@@ -18,23 +18,22 @@ while (n > 1)
 		bottom = node;
 	}
 	num++;
-	n /= factor;
+	\{n_.id} /= factor;
 }
-Array<int64_t>
-U8* result = (U8*)malloc(0x10 + sizeof(S64) * (size_t)num);
-((S64*)result)[0] = DefaultRefCntFunc;
-((S64*)result)[1] = (S64)num;
+Array<int64_t> *result=new Array<int64_t>();
+result->L = num;
+result->B = new int64_t[num+1];
 {
 	IntList* ptr = top;
-	S64* dst = (S64*)result + 2;
+	S64* dst = result->B;
 	while (ptr != NULL)
 	{
 		IntList* ptr2 = ptr;
 		ptr = ptr->Next;
 		*dst = ptr2->Value;
 		dst++;
-		FreeMem(ptr2);
+		free(ptr2);
 	}
 }
-qsort((S64*)result + 2, (size_t)num, sizeof(S64), CmpInt);
+qsort(result->B, (size_t)num, sizeof(S64), CmpInt);
 return result;

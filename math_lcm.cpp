@@ -9,4 +9,4 @@ if (a < 0)
 	a = -a;
 if (b < 0)
 	b = -b;
-return a / \{math@gcd}(a, b) * b;
+return a / _gcd(a, b) * b;
