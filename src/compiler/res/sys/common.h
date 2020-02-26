@@ -74,6 +74,18 @@ Array_<char16_t>::Array_(int64_t n, ...) noexcept : Ref_() {
 	if (bufLen_<char16_t>() > 0)
 		B[n] = 0;
 }
+template<>
+Array_<bool>::Array_(int64_t n, ...) noexcept : Ref_() {
+	L = n;
+	B = new bool[static_cast<size_t>(n + bufLen_<bool>())];
+	va_list l;
+	va_start(l, n);
+	for (int64_t i = 0; i < n; i++)
+		B[i] = va_arg(l, int);
+	va_end(l);
+	if (bufLen_<bool>() > 0)
+		B[n] = 0;
+}
 template<typename T> struct List_ : public Ref_ {
 	List_() noexcept : Ref_(), B(), I(B.end()) {}
 	int64_t Len() noexcept { return static_cast<int64_t>(B.size()); }

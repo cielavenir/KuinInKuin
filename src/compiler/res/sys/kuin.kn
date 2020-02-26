@@ -153,13 +153,13 @@ end func
 func [__any, __tch, __raw, fill] _fill(me_: int, type: []int, value: int)
 end func
 
-func [__any, __rch] _min(me_: int, type: []int): int
+func [__any, __rch, __raw, min] _min(me_: int, type: []int): int
 end func
 
-func [__any, __rch] _max(me_: int, type: []int): int
+func [__any, __rch, __raw, max] _max(me_: int, type: []int): int
 end func
 
-func [__any, __rme] _repeat(me_: int, type: []int, len: int): int
+func [__any, __rme, __raw, repeat] _repeat(me_: int, type: []int, len: int): int
 end func
 
 func [__raw, toInt] _toInt(me_: []char, success: &bool): int
