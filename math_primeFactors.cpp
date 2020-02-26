@@ -3,7 +3,7 @@ IntList* bottom = NULL;
 int num = 0;
 while (\{n_.id} > 1)
 {
-	S64 factor = FindFactor(\{n_.id}, 1);
+	S64 factor = FindFactor(\{n_.id});
 	IntList* node = (IntList*)malloc(sizeof(IntList));
 	node->Value = factor;
 	node->Next = NULL;
@@ -20,7 +20,7 @@ while (\{n_.id} > 1)
 	num++;
 	\{n_.id} /= factor;
 }
-Array<int64_t> *result=new Array<int64_t>();
+Array_<int64_t> *result=new Array_<int64_t>();
 result->L = num;
 result->B = new int64_t[num+1];
 {
