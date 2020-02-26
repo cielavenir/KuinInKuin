@@ -33,10 +33,46 @@ end func
 	ret a/g*b
 end func
 
-+func [__raw, math_modPow] modPow(value: int, exponent: int, modulus: int): int
++func modPow(value: int, exponent: int, modulus: int): int
+	if(value < 0)
+		throw excpt@dbgArgOutDomain
+	end if
+	if(exponent < 0)
+		throw excpt@dbgArgOutDomain
+	end if
+	if(modulus < 0)
+		throw excpt@dbgArgOutDomain
+	end if
+	var result: int :: 1
+	while loop(exponent > 0)
+		if(exponent%2 <> 0)
+			do result :: @modMul(result,value,modulus)
+		end if
+		do value :: @modMul(value,value,modulus)
+		do exponent :/ 2
+	end while
+	ret result
 end func
 
-+func [__raw, math_modMul] modMul(a: int, b: int, modulus: int): int
++func modMul(a: int, b: int, modulus: int): int
+	if(a < 0)
+		throw excpt@dbgArgOutDomain
+	end if
+	if(b < 0)
+		throw excpt@dbgArgOutDomain
+	end if
+	if(modulus < 0)
+		throw excpt@dbgArgOutDomain
+	end if
+	var result: int :: 0
+	while loop(a <> 0)
+		if(a%2 <> 0)
+			do result :: (result+b)%modulus
+		end if
+		do a :/ 2
+		do b :: (b*2)%modulus
+	end while
+	ret result
 end func
 
 +func [__raw, math_prime] prime(n: int): bool
@@ -49,13 +85,38 @@ end func
 end func
 
 +func fact(n: float): float
-	return @gamma(n+1.0)
+	ret @gamma(n+1.0)
 end func
 
-+func [__raw, math_factInt] factInt(n: int): int
++func factInt(n: int): int
+	if(n < 0)
+		throw excpt@dbgArgOutDomain
+	end if
+	if(n > 20)
+		throw excpt@dbgIntOverflow
+	end if
+	var result: int :: 1
+	for i(1..n)
+		result :* i
+	end for
+	ret result
 end func
 
-+func [__raw, math_fibonacci] fibonacci(n: int): int
++func fibonacci(n: int): int
+	if(n < 0)
+		throw excpt@dbgArgOutDomain
+	end if
+	if(n > 92)
+		throw excpt@dbgIntOverflow
+	end if
+	var a: int :: 0
+	var b: int :: 1
+	for i(1..n)
+		var t: int :: a+b
+		do a :: b
+		do b :: t
+	end for
+	ret b
 end func
 
 +func [__raw, math_knapsack] knapsack(weights: []int, values: []int, maxWeight: int, reuse: bool): int
