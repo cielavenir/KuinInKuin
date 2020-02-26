@@ -46,10 +46,10 @@ end func
 func [__any, __raw, toStr] _toStr(me_: int, type: []int): []char
 end func
 
-func [d0000.knd] _toStrFmtInt(me_: int, fmt: []char): []char
+func [__raw, toStrFmtInt] _toStrFmtInt(me_: int, fmt: []char): []char
 end func
 
-func [d0000.knd] _toStrFmtFloat(me_: float, fmt: []char): []char
+func [__raw, toStrFmtFloat] _toStrFmtFloat(me_: float, fmt: []char): []char
 end func
 
 func _absInt(me_: int): int
