@@ -252,8 +252,9 @@
 		do args.next()
 		do args.next()
 		var len_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
-		do codes.add("typedef typename std::remove_reference<decltype(\{me_.id}->B[0])>::type Elem_;")
-		do codes.add("Array_<Elem_> *r_=new Array_<Elem_>(); r_->L=\{me_.id}->L*\{len_.id}; r_->B=new Elem_[r_->L+1]; r_->B[r_->L]=0; for(int64_t j_=0;j_<\{len_.id};j_++)for(int64_t i_=0;i_<\{me_.id}->L;i_++)r_->B[j_*\{me_.id}->L + i_]=\{me_.id}->B[i_]; return r_;\n")
+		do codes.add("typedef typename std::remove_reference<decltype(\{me_.id}->B[0])>::type Elem_;\n")
+		do codes.add("Array_<Elem_> *r_=new Array_<Elem_>(); r_->L=\{me_.id}->L*\{len_.id}; r_->B=new Elem_[r_->L+1]; r_->B[r_->L]=0;\n")
+		do codes.add("for(int64_t j_=0;j_<\{len_.id};j_++)for(int64_t i_=0;i_<\{me_.id}->L;i_++)r_->B[j_*\{me_.id}->L + i_]=\{me_.id}->B[i_]; return r_;\n")
 	case "moveOffset"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
