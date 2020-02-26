@@ -96,8 +96,8 @@ end func
 		throw excpt@dbgIntOverflow
 	end if
 	var result: int :: 1
-	for i(1..n)
-		result :* i
+	for i(1,n)
+		do result :* i
 	end for
 	ret result
 end func
@@ -109,9 +109,12 @@ end func
 	if(n > 92)
 		throw excpt@dbgIntOverflow
 	end if
+	if(n = 0)
+		ret 0
+	end if
 	var a: int :: 0
 	var b: int :: 1
-	for i(1..n)
+	for i(2,n)
 		var t: int :: a+b
 		do a :: b
 		do b :: t
