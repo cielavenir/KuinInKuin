@@ -968,8 +968,7 @@ struct writer_ {
 	std::ofstream* F;
 };
 
-static char16_t readUtf8_(reader_ *r_, bool replace_delimiter) {
-	std::ifstream* f = r_->F;
+static char16_t readUtf8_(std::ifstream *f) {
 	char c;
 	int64_t l;
 	uint64_t u;
@@ -1000,14 +999,6 @@ static char16_t readUtf8_(reader_ *r_, bool replace_delimiter) {
 	}
 	if (0x00010000 <= u && u <= 0x0010ffff)
 		u = 0x20;
-	if(replace_delimiter){
-		int64_t i;
-		for (i = 0; i < r_->delimiter_->Len(); i++)
-		{
-			if (u == r_->delimiter_->B[i] || (u == L'\r' && r_->delimiter_->B[i] == L'\n'))
-				return L'\0';
-		}
-	}
 	return static_cast<char16_t>(u);
 }
 
@@ -1071,19 +1062,9 @@ static void init_() {
 
 Array_<char16_t> delimiter_(3,',',' ','\n');
 
-static wchar_t ReadIo_(bool replace_delimiter)
+static wchar_t ReadIo_()
 {
 	wchar_t c = fgetwc(stdin);
-	if (c == L'\0')
-		return L'\0';
-	if(replace_delimiter){
-		int64_t i;
-		for (i = 0; i < delimiter_.Len(); i++)
-		{
-			if (c == delimiter_.B[i] || (c == L'\r' && delimiter_.B[i] == L'\n'))
-				return L'\0';
-		}
-	}
 	return c;
 }
 

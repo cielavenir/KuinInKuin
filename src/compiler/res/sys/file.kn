@@ -5,6 +5,10 @@
 end enum
 
 +class Reader()
+	*func ctor()
+		do me.delimiters :: " ,\n"
+	end func
+
 	*func [d0000.knd, _readerDtor, __frc] _dtor()
 	end func
 
@@ -17,7 +21,8 @@ end enum
 	+func [__raw, file_readerGetPos] getPos(): int
 	end func
 
-	+func [__raw, file_readerDelimiter] delimiter(delimiters: []char)
+	+func delimiter(delimiters: []char)
+		do me.delimiters :: delimiters
 	end func
 
 	+func [d0000.knd, _readerRead] read(size: int): []bit8
@@ -27,7 +32,23 @@ end enum
 	+func [__raw, file_readerReadLetter] readLetter(): char
 	end func
 
-	+func [__raw, file_readerReadChar_] _readChar(): char
+	func _readChar(): char
+		while loop(true)
+			var c: char :: me.readLetter()
+			for i(0, ^me.delimiters-1)
+				if(c = me.delimiters[i] | (c = '\u000D' & me.delimiters[i] = '\n'))
+					do c :: '\0'
+					break i
+				end if
+			end for
+			if(c = '\u000D')
+				skip loop
+			end if
+			if(c = '\uFFFF')
+				throw excpt@invalidDataFmt
+			end if
+			ret c
+		end while
 	end func
 
 	+func readInt(): int
@@ -104,8 +125,7 @@ end enum
 	end func
 
 	var handle: int
-	var delimiterNum: int
-	var delimiters: int
+	var delimiters: []char
 	var fileSize_: int
 end class
 

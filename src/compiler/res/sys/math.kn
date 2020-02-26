@@ -1,10 +1,36 @@
 func [d0003.knd, _init] _init()
 end func
 
-+func [__raw, math_gcd] gcd(a: int, b: int): int
++func gcd(a: int, b: int): int
+	if(a = 0)
+		ret b
+	end if
+	if(b = 0)
+		ret a
+	end if
+	if(a < 0)
+		do a :: -a
+	end if
+	if(b < 0)
+		do b :: -b
+	end if
+	var r: int :: 0
+	while loop(true)
+		do r :: a % b
+		if(r = 0)
+			ret b
+		end if
+		do a :: b
+		do b :: r
+	end while
 end func
 
-+func [__raw, math_lcm] lcm(a: int, b: int): int
++func lcm(a: int, b: int): int
+	var g: int :: @gcd(a,b)
+	if(g = 0)
+		ret 0
+	end if
+	ret a/g*b
 end func
 
 +func [__raw, math_modPow] modPow(value: int, exponent: int, modulus: int): int
@@ -22,7 +48,8 @@ end func
 +func [__raw, math_gamma] gamma(n: float): float
 end func
 
-+func [__raw, math_fact] fact(n: float): float
++func fact(n: float): float
+	return @gamma(n+1.0)
 end func
 
 +func [__raw, math_factInt] factInt(n: int): int

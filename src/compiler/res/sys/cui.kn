@@ -1,12 +1,15 @@
 ;;; in Kuin, file is always UTF-8 but cui depends on machine's locale, so fgetwc(stdin) must be used.
 
+var delimiters: []char :: " ,\n"
+
 func [d0002.knd, _init] _init()
 end func
 
 func [d0002.knd] _fin()
 end func
 
-+func [__raw, cui_delimiter] delimiter(delimiters: []char)
++func delimiter(delimiters_: []char)
+	do @delimiters :: delimiters_
 end func
 
 +func [__raw, cui_print] print(str: []char)
@@ -15,7 +18,23 @@ end func
 +func [__raw, cui_inputLetter] inputLetter(): char
 end func
 
-+func [__raw, cui_inputChar_] _inputChar(): char
+func _inputChar(): char
+	while loop(true)
+		var c: char :: @inputLetter()
+		for i(0, ^@delimiters-1)
+			if(c = @delimiters[i] | (c = '\u000D' & @delimiters[i] = '\n'))
+				do c :: '\0'
+				break i
+			end if
+		end for
+		if(c = '\u000D')
+			skip loop
+		end if
+		if(c = '\uFFFF')
+			throw excpt@invalidDataFmt
+		end if
+		ret c
+	end while
 end func
 
 +func inputChar(): char
