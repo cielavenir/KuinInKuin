@@ -10,7 +10,7 @@
 
 		Array_<int64_t> *result=new Array_<int64_t>();
 		result->L = node_num;
-		result->B = new inr64_t[node_num+1];
+		result->B = new int64_t[node_num+1];
 		S64* distance = result->B;
 		for (i = 0; i < node_num; i++)
 			distance[i] = LLONG_MAX;
