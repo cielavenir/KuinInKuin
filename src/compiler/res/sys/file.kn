@@ -4,6 +4,8 @@
 	tail
 end enum
 
+var STACK_STRING_BUF_SIZE: int :: 1024
+
 +class Reader()
 	*func ctor()
 		do me.delimiters :: " ,\n"
@@ -81,10 +83,10 @@ end enum
 	end func
 
 	+func readStr(): []char
-		var buf: []char :: ""
-		var c: char :: '\0'
+		var buf: []char :: #[@STACK_STRING_BUF_SIZE]char
+		var ptr: int :: 0
 		while loop(true)
-			do c :: me._readChar()
+			var c: char :: me._readChar()
 			if(c = '\uFFFF')
 				if(^buf = 0)
 					throw excpt@invalidDataFmt
@@ -97,13 +99,26 @@ end enum
 				end if
 				break loop
 			end if
-			do buf :~ c.toStr()
+			if(ptr = ^buf)
+				var tmp: []char :: #[^buf + @STACK_STRING_BUF_SIZE]char
+				for i(0,ptr-1)
+					do tmp[i] :: buf[i]
+				end for
+				do buf :: tmp
+			end if
+			do buf[ptr] :: c
+			do ptr :+ 1
 		end while
-		ret buf
+		var result: []char :: #[ptr]char
+		for i(0,ptr-1)
+			do result[i] :: buf[i]
+		end for
+		ret result
 	end func
 
 	+func readLine(): []char
-		var buf: []char :: ""
+		var buf: []char :: #[@STACK_STRING_BUF_SIZE]char
+		var ptr: int :: 0
 		while loop(!me.term())
 			var c: char :: me.readLetter()
 			if(c = '\u000D')
@@ -112,9 +127,21 @@ end enum
 			if(c = '\n')
 				break loop
 			end if
-			do buf :~ c.toStr()
+			if(ptr = ^buf)
+				var tmp: []char :: #[^buf + @STACK_STRING_BUF_SIZE]char
+				for i(0,ptr-1)
+					do tmp[i] :: buf[i]
+				end for
+				do buf :: tmp
+			end if
+			do buf[ptr] :: c
+			do ptr :+ 1
 		end while
-		ret buf
+		var result: []char :: #[ptr]char
+		for i(0,ptr-1)
+			do result[i] :: buf[i]
+		end for
+		ret result
 	end func
 
 	+func [d0000.knd, _readerFileSize] fileSize(): int

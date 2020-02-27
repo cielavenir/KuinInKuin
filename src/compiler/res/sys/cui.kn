@@ -1,5 +1,6 @@
 ;;; in Kuin, file is always UTF-8 but cui depends on machine's locale, so fgetwc(stdin) must be used.
 
+var STACK_STRING_BUF_SIZE: int :: 1024
 var delimiters: []char :: " ,\n"
 
 func [d0002.knd, _init] _init()
@@ -67,7 +68,8 @@ end func
 end func
 
 +func inputStr(): []char
-	var buf: []char :: ""
+	var buf: []char :: #[@STACK_STRING_BUF_SIZE]char
+	var ptr: int :: 0
 	var c: char :: '\0'
 	while loop(true)
 		do c :: @_inputChar()
@@ -83,13 +85,26 @@ end func
 			end if
 			break loop
 		end if
-		do buf :~ c.toStr()
+		if(ptr = ^buf)
+			var tmp: []char :: #[^buf + @STACK_STRING_BUF_SIZE]char
+			for i(0,ptr-1)
+				do tmp[i] :: buf[i]
+			end for
+			do buf :: tmp
+		end if
+		do buf[ptr] :: c
+		do ptr :+ 1
 	end while
-	ret buf
+	var result: []char :: #[ptr]char
+	for i(0,ptr-1)
+		do result[i] :: buf[i]
+	end for
+	ret result
 end func
 
 +func input(): []char
-	var buf: []char :: ""
+	var buf: []char :: #[@STACK_STRING_BUF_SIZE]char
+	var ptr: int :: 0
 	var c: char :: '\0'
 	while loop(true)
 		do c :: @inputLetter()
@@ -102,7 +117,19 @@ end func
 		if(c = '\n')
 			break loop
 		end if
-		do buf :~ c.toStr()
+		if(ptr = ^buf)
+			var tmp: []char :: #[^buf + @STACK_STRING_BUF_SIZE]char
+			for i(0,ptr-1)
+				do tmp[i] :: buf[i]
+			end for
+			do buf :: tmp
+		end if
+		do buf[ptr] :: c
+		do ptr :+ 1
 	end while
-	ret buf
+	var result: []char :: #[ptr]char
+	for i(0,ptr-1)
+		do result[i] :: buf[i]
+	end for
+	ret result
 end func
