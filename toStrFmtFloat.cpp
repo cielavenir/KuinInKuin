@@ -68,11 +68,11 @@
 	dst_ptr++;
 	dst[dst_ptr] = L'\0';
 	dst_ptr++;
-	assert(src_ptr + 1 == src_len);
+	//assert(src_ptr + 1 == src_len);
 
 	wchar_t str[65];
 	int len = swprintf(str, 65, dst, \{me_.id});
-	assert(len < 65);
+	//assert(len < 65);
     Array_<char16_t> *result = new Array_<char16_t>();
     result->B = new char16_t[len+1];
     for(int i=0;i<len;i++)result->B[i]=str[i];
