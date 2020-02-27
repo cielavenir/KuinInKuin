@@ -711,6 +711,26 @@
 		do codes.add("document.body.appendChild(c_);\n")
 		do codes.add("\{me_.id}.\{handle.id}={C:c_};\n")
 		do codes.add("return \{me_.id};\n")
+	case "cui_inputLetter"
+		; TODO:
+	case "math_bellmanFord"
+		; TODO:
+	case "math_dijkstra"
+		; TODO:
+	case "math_gamma"
+		; TODO:
+	case "max"
+		; TODO:
+	case "min"
+		; TODO:
+	case "repeat"
+		; TODO:
+	case "rndRaw"
+		; TODO:
+	case "toStrFmtFloat"
+		; TODO:
+	case "toStrFmtInt"
+		; TODO:
 	default
 		assert false
 	end switch
