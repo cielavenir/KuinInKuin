@@ -75,6 +75,30 @@ Array_<char16_t>::Array_(int64_t n, ...) noexcept : Ref_() {
 		B[n] = 0;
 }
 template<>
+Array_<unsigned char>::Array_(int64_t n, ...) noexcept : Ref_() {
+	L = n;
+	B = new unsigned char[static_cast<unsigned char>(n + bufLen_<unsigned char>())];
+	va_list l;
+	va_start(l, n);
+	for (int64_t i = 0; i < n; i++)
+		B[i] = va_arg(l, int);
+	va_end(l);
+	if (bufLen_<unsigned char>() > 0)
+		B[n] = 0;
+}
+template<>
+Array_<unsigned short>::Array_(int64_t n, ...) noexcept : Ref_() {
+	L = n;
+	B = new unsigned short[static_cast<unsigned short>(n + bufLen_<unsigned short>())];
+	va_list l;
+	va_start(l, n);
+	for (int64_t i = 0; i < n; i++)
+		B[i] = va_arg(l, int);
+	va_end(l);
+	if (bufLen_<unsigned short>() > 0)
+		B[n] = 0;
+}
+template<>
 Array_<bool>::Array_(int64_t n, ...) noexcept : Ref_() {
 	L = n;
 	B = new bool[static_cast<size_t>(n + bufLen_<bool>())];

@@ -726,10 +726,12 @@
 	case "repeat"
 		; TODO:
 	case "rndRaw"
-		; TODO:
+		do codes.add("return Math.floor(Math.random()*0x100000000);\n")
 	case "toStrFmtFloat"
 		; TODO:
 	case "toStrFmtInt"
+		; TODO:
+	case "exist"
 		; TODO:
 	default
 		assert false

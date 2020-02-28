@@ -185,6 +185,13 @@
 		do args.next()
 		var existed: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
 		do codes.add("return dictSearch_(\{me_.id}->B, \{key.id}, \{existed.id});\n")
+	case "exist"
+		do args.head()
+		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do args.next()
+		do args.next()
+		var key: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("bool exist=false;auto _=dictSearch_(\{me_.id}->B, \{key.id}, &exist);return exist;\n")
 	case "getList"
 		do args.head()
 		var me_: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())

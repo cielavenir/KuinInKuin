@@ -403,7 +403,7 @@ end func
 func [__any, __rch, __raw, peekStack] _peekStack(me_: int, type: []int): int
 end func
 
-func [__any, __tch] _exist(me_: int, type: []int, key: int): bool
+func [__any, __tch, __raw, exist] _exist(me_: int, type: []int, key: int): bool
 end func
 
 func [__any, __kvf, __raw, forEach] _forEach(me_: int, type: []int, callback: int, data: @Class): bool
