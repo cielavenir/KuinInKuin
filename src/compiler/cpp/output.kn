@@ -314,7 +314,11 @@ func buildIf(ast: \ast@AstStatIf, breakStat: \ast@AstStat, skipStat: \ast@AstSta
 	var infoMe: @CppInfo :: @getInfo(ast)
 	if(ast.cond =& null)
 		; Optimized code.
-		do @buildBlock(ast.statBlock, breakStat, skipStat)
+		if(ast.statBlock <>& null)
+			do @buildBlock(ast.statBlock, breakStat, skipStat)
+		else
+			assert(\option@rls)
+		end if
 		if(infoMe.breakLabel <>& null & infoMe.breakLabelUsed)
 			do @codes.add("\{infoMe.breakLabel}:;\n")
 		end if
