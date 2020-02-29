@@ -315,6 +315,55 @@ static bool moveFile_(const char16_t* d, const char16_t* s) noexcept {
 #   define BOOST_MOVE_FILE(OLD,NEW)()
 #endif
 
+#if 0
+template<typename T, size_t N> std::shared_ptr<Array_<T>> newArrayRec2_() noexcept {
+	std::shared_ptr<Array_<T>> r(new Array_<T>());
+	r->L = N;
+	size_t s = static_cast<size_t>(N + bufLen_<T>());
+	r->B = new T[s];
+	memset(r->B, 0, sizeof(T) * s);
+	return r;
+}
+
+template<typename T, size_t N, size_t M, size_t... Tail> auto newArrayRec2_() noexcept {
+	typedef decltype(newArrayRec2_<T,M,Tail...>()) X;
+	std::shared_ptr<Array_<X>> r(new Array_<X>());
+	r->L = N;
+	size_t s = static_cast<size_t>(N + 0);
+	r->B = new X[s];
+	for (int64_t i = 0; i < N; i++)
+		r->B[i] = newArrayRec2_<T,M,Tail...>();
+	return r;
+}
+#endif
+
+template<typename T,size_t n>
+struct ArrayBuilder{
+	auto newArrayRec2_(int64_t n_,const int64_t* b) noexcept {
+		typedef decltype(ArrayBuilder<T,n-1>().newArrayRec2_(n_,b)) X;
+		std::shared_ptr<Array_<X>> r(new Array_<X>());
+		int64_t N = b[n_-n];
+		r->L = N;
+		size_t s = static_cast<size_t>(N + 0);
+		r->B = new X[s];
+		for (int64_t i = 0; i < N; i++)
+			r->B[i] = ArrayBuilder<T,n-1>().newArrayRec2_(n_,b);
+		return r;
+	}
+};
+template<typename T>
+struct ArrayBuilder<T,1>{
+	std::shared_ptr<Array_<T>> newArrayRec2_(int64_t n_,const int64_t* b) noexcept {
+		std::shared_ptr<Array_<T>> r(new Array_<T>());
+		int64_t N = b[n_-1];
+		r->L = N;
+		size_t s = static_cast<size_t>(N + bufLen_<T>());
+		r->B = new T[s];
+		memset(r->B, 0, sizeof(T) * s);
+		return r;
+	}
+};
+
 template<typename T> std::shared_ptr<Array_<T>> newArrayRec_(int64_t n, int64_t x, const int64_t* b) noexcept {
 	if (x != n - 1){
 		abort();
@@ -337,16 +386,16 @@ template<typename T> std::shared_ptr<Array_<T>> newArrayRec_(int64_t n, int64_t 
 	}
 */
 }
-template<typename T, typename R> R newArray_(int64_t n, ...) noexcept {
+template<typename T, size_t n, typename R> R newArray_(int64_t _, ...) noexcept {
 	if (n > 64)
 		return nullptr;
 	int64_t b[64];
 	va_list l;
-	va_start(l, n);
+	va_start(l, _);
 	for (int64_t i = 0; i < n; i++)
 		b[i] = va_arg(l, int64_t);
 	va_end(l);
-	return static_cast<R>(newArrayRec_<T>(n, 0, b));
+	return ArrayBuilder<T,n>().newArrayRec2_(n, b);
 }
 
 template<typename T> std::shared_ptr<Array_<T>> toArray_(List_<T>* l) noexcept {
@@ -3293,7 +3342,7 @@ if((k_kf) < (0LL)){
 return std::shared_ptr<Array_<char16_t>>(new Array_<char16_t>(2, u'\u002E', u'\u002F'));
 }
 else{
-(k_kl) = (newArray_<char16_t, std::shared_ptr<Array_<char16_t>>>(1, ((k_kf) + (1LL))));
+(k_kl) = (newArray_<char16_t, 1, std::shared_ptr<Array_<char16_t>>>(1, ((k_kf) + (1LL))));
 for(k_kp = (0LL), k_kq = (k_kf); k_kp <= k_kq; k_kp += (1LL)){
 ((k_kl)->At(k_kp)) = ((((k_ke)->At(k_kp)) == (u'\u005C')) ? (u'\u002F') : ((k_ke)->At(k_kp)));
 }
@@ -3316,7 +3365,7 @@ while(((((k_ks) >= (0LL)) && (((k_kr)->At(k_ks)) != (u'\u002F'))) && (((k_kr)->A
 if(((k_ks) < (0LL)) || (((k_kr)->At(k_ks)) != (u'\u002E'))){
 return k_kr;
 }
-(k_kx) = (newArray_<char16_t, std::shared_ptr<Array_<char16_t>>>(1, (k_ks)));
+(k_kx) = (newArray_<char16_t, 1, std::shared_ptr<Array_<char16_t>>>(1, (k_ks)));
 for(k_lb = (0LL), k_lc = ((k_ks) - (1LL)); k_lb <= k_lc; k_lb += (1LL)){
 ((k_kx)->At(k_lb)) = ((((k_kr)->At(k_lb)) == (u'\u005C')) ? (u'\u002F') : ((k_kr)->At(k_lb)));
 }
@@ -3339,7 +3388,7 @@ if((k_le) < (0LL)){
 return k_ld;
 }
 (k_le) = ((k_le) + (1LL));
-(k_lk) = (newArray_<char16_t, std::shared_ptr<Array_<char16_t>>>(1, (((k_ld)->Len()) - (k_le))));
+(k_lk) = (newArray_<char16_t, 1, std::shared_ptr<Array_<char16_t>>>(1, (((k_ld)->Len()) - (k_le))));
 for(k_lo = (0LL), k_lp = ((((k_ld)->Len()) - (k_le)) - (1LL)); k_lo <= k_lp; k_lo += (1LL)){
 ((k_lk)->At(k_lo)) = ((k_ld)->At((k_le) + (k_lo)));
 }
@@ -3363,7 +3412,7 @@ return std::shared_ptr<Array_<char16_t>>(new Array_<char16_t>(0));
 }
 else{
 (k_lr) = ((k_lr) + (1LL));
-(k_ly) = (newArray_<char16_t, std::shared_ptr<Array_<char16_t>>>(1, (((k_lq)->Len()) - (k_lr))));
+(k_ly) = (newArray_<char16_t, 1, std::shared_ptr<Array_<char16_t>>>(1, (((k_lq)->Len()) - (k_lr))));
 for(k_mc = (0LL), k_md = ((((k_lq)->Len()) - (k_lr)) - (1LL)); k_mc <= k_md; k_mc += (1LL)){
 ((k_ly)->At(k_mc)) = ((k_lq)->At((k_lr) + (k_mc)));
 }
@@ -3420,7 +3469,7 @@ return as_<k_gc>(classTable_, (k_ne), 0);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_gh(k_gc* k_nf /*me*/){
 std::shared_ptr<Array_<uint8_t>> k_ng;
-(k_ng) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_ng) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 return k_ng;
 }
 // _fromBin
@@ -3446,7 +3495,7 @@ return as_<k_gb>(classTable_, (k_no), 8);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_gm(k_gb* k_nq){
 std::shared_ptr<Array_<uint8_t>> k_nr;
-(k_nr) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_nr) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_nr) = ((k_nr)->Cat(toBin_<int64_t>()(((k_nq)->k_np))));
 return k_nr;
 }
@@ -3483,7 +3532,7 @@ return as_<k_gt>(classTable_, (k_og), 24);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_gw(k_gt* k_oh){
 std::shared_ptr<Array_<uint8_t>> k_oi;
-(k_oi) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_oi) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_oi) = ((k_oi)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_oh)->k_jf))));
 (k_oi) = ((k_oi)->Cat(toBin_<int64_t>()(((k_oh)->k_jg))));
 (k_oi) = ((k_oi)->Cat(toBin_<int64_t>()(((k_oh)->k_jh))));
@@ -3526,7 +3575,7 @@ return as_<k_ga>(classTable_, (k_oz), 16);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_gr(k_ga* k_pb){
 std::shared_ptr<Array_<uint8_t>> k_pc;
-(k_pc) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_pc) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_pc) = ((k_pc)->Cat(toBin_<k_gt*>()(((k_pb)->k_or))));
 (k_pc) = ((k_pc)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_pb)->k_os))));
 (k_pc) = ((k_pc)->Cat(toBin_<k_ga*>()(((k_pb)->k_ot))));
@@ -3581,7 +3630,7 @@ return as_<k_hh>(classTable_, (k_ps), 48);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_hk(k_hh* k_pt){
 std::shared_ptr<Array_<uint8_t>> k_pu;
-(k_pu) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_pu) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_pu) = ((k_pu)->Cat(toBin_<k_gt*>()(((k_pt)->k_or))));
 (k_pu) = ((k_pu)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_pt)->k_os))));
 (k_pu) = ((k_pu)->Cat(toBin_<k_ga*>()(((k_pt)->k_ot))));
@@ -3639,7 +3688,7 @@ return as_<k_hm>(classTable_, (k_ql), 56);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_hp(k_hm* k_qn){
 std::shared_ptr<Array_<uint8_t>> k_qo;
-(k_qo) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_qo) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_qo) = ((k_qo)->Cat(toBin_<k_hh*>()(((k_qn)->k_qj))));
 (k_qo) = ((k_qo)->Cat(toBin_<int64_t>()(((k_qn)->k_qm))));
 (k_qo) = ((k_qo)->Cat(toBin_<k_gt*>()(((k_qn)->k_or))));
@@ -3704,7 +3753,7 @@ return as_<k_hc>(classTable_, (k_ri), 40);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_hf(k_hc* k_rl){
 std::shared_ptr<Array_<uint8_t>> k_rm;
-(k_rm) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_rm) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_rm) = ((k_rm)->Cat(toBin_<int64_t>()(((k_rl)->k_rj))));
 (k_rm) = ((k_rm)->Cat(toBin_<bool>()(((k_rl)->k_rk))));
 (k_rm) = ((k_rm)->Cat(toBin_<k_hh*>()(((k_rl)->k_rf))));
@@ -3767,7 +3816,7 @@ return as_<k_hr>(classTable_, (k_sg), 64);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_hu(k_hr* k_sh){
 std::shared_ptr<Array_<uint8_t>> k_si;
-(k_si) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_si) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_si) = ((k_si)->Cat(toBin_<k_gt*>()(((k_sh)->k_or))));
 (k_si) = ((k_si)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_sh)->k_os))));
 (k_si) = ((k_si)->Cat(toBin_<k_ga*>()(((k_sh)->k_ot))));
@@ -3831,7 +3880,7 @@ return as_<k_fz>(classTable_, (k_tc), 32);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_ha(k_fz* k_te){
 std::shared_ptr<Array_<uint8_t>> k_tf;
-(k_tf) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_tf) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_tf) = ((k_tf)->Cat(toBin_<int64_t>()(((k_te)->k_td))));
 (k_tf) = ((k_tf)->Cat(toBin_<List_<std::shared_ptr<Array_<char16_t>>>*>()(((k_te)->k_sx))));
 (k_tf) = ((k_tf)->Cat(toBin_<List_<k_hc*>*>()(((k_te)->k_sy))));
@@ -3882,7 +3931,7 @@ return as_<k_ia>(classTable_, (k_ua), 72);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_id(k_ia* k_ub){
 std::shared_ptr<Array_<uint8_t>> k_uc;
-(k_uc) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_uc) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_uc) = ((k_uc)->Cat(toBin_<List_<std::shared_ptr<Array_<char16_t>>>*>()(((k_ub)->k_if))));
 return k_uc;
 }
@@ -5488,7 +5537,7 @@ return as_<k_mf>(classTable_, (k_auu), 80);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_mk(k_mf* k_auv){
 std::shared_ptr<Array_<uint8_t>> k_auw;
-(k_auw) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_auw) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_auw) = ((k_auw)->Cat(toBin_<bool>()(((k_auv)->k_mm))));
 return k_auw;
 }
@@ -5726,7 +5775,7 @@ return as_<k_vb>(classTable_, (k_bbl), 96);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_ve(k_vb* k_bbo){
 std::shared_ptr<Array_<uint8_t>> k_bbp;
-(k_bbp) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_bbp) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_bbp) = ((k_bbp)->Cat(toBin_<bool>()(((k_bbo)->k_bbm))));
 (k_bbp) = ((k_bbp)->Cat(toBin_<bool>()(((k_bbo)->k_bbn))));
 (k_bbp) = ((k_bbp)->Cat(toBin_<k_ga*>()(((k_bbo)->k_bbi))));
@@ -5773,7 +5822,7 @@ return as_<k_uw>(classTable_, (k_bcb), 88);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_uz(k_uw* k_bcc){
 std::shared_ptr<Array_<uint8_t>> k_bcd;
-(k_bcd) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_bcd) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_bcd) = ((k_bcd)->Cat(toBin_<List_<k_vb*>*>()(((k_bcc)->k_bbz))));
 (k_bcd) = ((k_bcd)->Cat(toBin_<k_gt*>()(((k_bcc)->k_or))));
 (k_bcd) = ((k_bcd)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_bcc)->k_os))));
@@ -5818,7 +5867,7 @@ return as_<k_vg>(classTable_, (k_bcw), 104);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_vj(k_vg* k_bcx){
 std::shared_ptr<Array_<uint8_t>> k_bcy;
-(k_bcy) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_bcy) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_bcy) = ((k_bcy)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_bcx)->k_bct))));
 (k_bcy) = ((k_bcy)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_bcx)->k_bcu))));
 return k_bcy;
@@ -6140,7 +6189,7 @@ return as_<k_vw>(classTable_, (k_bkr), 112);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_vz(k_vw* k_bks){
 std::shared_ptr<Array_<uint8_t>> k_bkt;
-(k_bkt) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_bkt) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_bkt) = ((k_bkt)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_bks)->k_bkp))));
 return k_bkt;
 }
@@ -6369,7 +6418,7 @@ static std::shared_ptr<Array_<char16_t>> k_avr(std::shared_ptr<Array_<char16_t>>
 std::shared_ptr<Array_<char16_t>> k_bqe; // r
 int64_t k_bqi;
 int64_t k_bqj;
-(k_bqe) = (newArray_<char16_t, std::shared_ptr<Array_<char16_t>>>(1, ((k_bqd)->Len())));
+(k_bqe) = (newArray_<char16_t, 1, std::shared_ptr<Array_<char16_t>>>(1, ((k_bqd)->Len())));
 for(k_bqi = (0LL), k_bqj = (((k_bqd)->Len()) - (1LL)); k_bqi <= k_bqj; k_bqi += (1LL)){
 ((k_bqe)->At(k_bqi)) = ((((k_bqd)->At(k_bqi)) == (u'\u005C')) ? (u'\u002F') : ((k_bqd)->At(k_bqi)));
 }
@@ -6505,7 +6554,7 @@ std::shared_ptr<Array_<char16_t>> k_btv; // result
 int64_t k_btz;
 int64_t k_btt;
 int64_t k_bua;
-(k_bsx) = (newArray_<char16_t, std::shared_ptr<Array_<char16_t>>>(1, (k_p)));
+(k_bsx) = (newArray_<char16_t, 1, std::shared_ptr<Array_<char16_t>>>(1, (k_p)));
 (k_bsy) = (0LL);
 while(true){
 (k_btc) = ((reinterpret_cast<k_btd>(classTable_[(k_bsw)->Y + 14]))((k_bsw)));
@@ -6522,7 +6571,7 @@ continue;
 break;
 }
 if((k_bsy) == ((k_bsx)->Len())){
-(k_bto) = (newArray_<char16_t, std::shared_ptr<Array_<char16_t>>>(1, (((k_bsx)->Len()) + (k_p))));
+(k_bto) = (newArray_<char16_t, 1, std::shared_ptr<Array_<char16_t>>>(1, (((k_bsx)->Len()) + (k_p))));
 for(k_bts = (0LL), k_btt = ((k_bsy) - (1LL)); k_bts <= k_btt; k_bts += (1LL)){
 ((k_bto)->At(k_bts)) = ((k_bsx)->At(k_bts));
 }
@@ -6531,7 +6580,7 @@ for(k_bts = (0LL), k_btt = ((k_bsy) - (1LL)); k_bts <= k_btt; k_bts += (1LL)){
 ((k_bsx)->At(k_bsy)) = (k_btc);
 (k_bsy) = ((k_bsy) + (1LL));
 }
-(k_btv) = (newArray_<char16_t, std::shared_ptr<Array_<char16_t>>>(1, (k_bsy)));
+(k_btv) = (newArray_<char16_t, 1, std::shared_ptr<Array_<char16_t>>>(1, (k_bsy)));
 for(k_btz = (0LL), k_bua = ((k_bsy) - (1LL)); k_btz <= k_bua; k_btz += (1LL)){
 ((k_btv)->At(k_btz)) = ((k_bsx)->At(k_btz));
 }
@@ -6548,7 +6597,7 @@ std::shared_ptr<Array_<char16_t>> k_bux; // result
 int64_t k_bvb;
 int64_t k_buv;
 int64_t k_bvc;
-(k_buc) = (newArray_<char16_t, std::shared_ptr<Array_<char16_t>>>(1, (k_p)));
+(k_buc) = (newArray_<char16_t, 1, std::shared_ptr<Array_<char16_t>>>(1, (k_p)));
 (k_bud) = (0LL);
 while(!((reinterpret_cast<k_buh>(classTable_[(k_bub)->Y + 21]))((k_bub)))){
 (k_bui) = ((reinterpret_cast<k_buj>(classTable_[(k_bub)->Y + 13]))((k_bub)));
@@ -6559,7 +6608,7 @@ if((k_bui) == (u'\u000A')){
 break;
 }
 if((k_bud) == ((k_buc)->Len())){
-(k_buq) = (newArray_<char16_t, std::shared_ptr<Array_<char16_t>>>(1, (((k_buc)->Len()) + (k_p))));
+(k_buq) = (newArray_<char16_t, 1, std::shared_ptr<Array_<char16_t>>>(1, (((k_buc)->Len()) + (k_p))));
 for(k_buu = (0LL), k_buv = ((k_bud) - (1LL)); k_buu <= k_buv; k_buu += (1LL)){
 ((k_buq)->At(k_buu)) = ((k_buc)->At(k_buu));
 }
@@ -6568,7 +6617,7 @@ for(k_buu = (0LL), k_buv = ((k_bud) - (1LL)); k_buu <= k_buv; k_buu += (1LL)){
 ((k_buc)->At(k_bud)) = (k_bui);
 (k_bud) = ((k_bud) + (1LL));
 }
-(k_bux) = (newArray_<char16_t, std::shared_ptr<Array_<char16_t>>>(1, (k_bud)));
+(k_bux) = (newArray_<char16_t, 1, std::shared_ptr<Array_<char16_t>>>(1, (k_bud)));
 for(k_bvb = (0LL), k_bvc = ((k_bud) - (1LL)); k_bvb <= k_bvc; k_bvb += (1LL)){
 ((k_bux)->At(k_bvb)) = ((k_buc)->At(k_bvb));
 }
@@ -6600,7 +6649,7 @@ return as_<k_avv>(classTable_, (k_bvg), 120);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_awn(k_avv* k_bvi){
 std::shared_ptr<Array_<uint8_t>> k_bvj;
-(k_bvj) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_bvj) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_bvj) = ((k_bvj)->Cat(toBin_<int64_t>()(((k_bvi)->k_bqq))));
 (k_bvj) = ((k_bvj)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_bvi)->k_bqt))));
 (k_bvj) = ((k_bvj)->Cat(toBin_<int64_t>()(((k_bvi)->k_bvh))));
@@ -6708,7 +6757,7 @@ return as_<k_axe>(classTable_, (k_byd), 150);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_axh(k_axe* k_bye){
 std::shared_ptr<Array_<uint8_t>> k_byf;
-(k_byf) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_byf) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_byf) = ((k_byf)->Cat(toBin_<k_ga*>()(((k_bye)->k_ayh))));
 (k_byf) = ((k_byf)->Cat(toBin_<k_ga*>()(((k_bye)->k_azc))));
 return k_byf;
@@ -6753,7 +6802,7 @@ return as_<k_awz>(classTable_, (k_byo), 142);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_axc(k_awz* k_byp){
 std::shared_ptr<Array_<uint8_t>> k_byq;
-(k_byq) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_byq) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_byq) = ((k_byq)->Cat(toBin_<List_<k_ga*>*>()(((k_byp)->k_bax))));
 (k_byq) = ((k_byq)->Cat(toBin_<List_<k_axe*>*>()(((k_byp)->k_aya))));
 (k_byq) = ((k_byq)->Cat(toBin_<k_gt*>()(((k_byp)->k_or))));
@@ -7113,7 +7162,7 @@ return as_<k_bdk>(classTable_, (k_chq), 158);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_bdn(k_bdk* k_chr){
 std::shared_ptr<Array_<uint8_t>> k_chs;
-(k_chs) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_chs) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_chs) = ((k_chs)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_chr)->k_bfu))));
 (k_chs) = ((k_chs)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_chr)->k_chg))));
 (k_chs) = ((k_chs)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_chr)->k_chj))));
@@ -8645,7 +8694,7 @@ return as_<k_bhw>(classTable_, (k_dax), 166);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_bhz(k_bhw* k_day){
 std::shared_ptr<Array_<uint8_t>> k_daz;
-(k_daz) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_daz) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_daz) = ((k_daz)->Cat(toBin_<k_hc*>()(((k_day)->k_bic))));
 (k_daz) = ((k_daz)->Cat(toBin_<k_gt*>()(((k_day)->k_or))));
 (k_daz) = ((k_daz)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_day)->k_os))));
@@ -8773,7 +8822,7 @@ return as_<k_bjb>(classTable_, (k_ddm), 174);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_bjm(k_bjb* k_ddn){
 std::shared_ptr<Array_<uint8_t>> k_ddo;
-(k_ddo) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_ddo) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_ddo) = ((k_ddo)->Cat(toBin_<int64_t>()(((k_ddn)->k_dby))));
 return k_ddo;
 }
@@ -8876,7 +8925,7 @@ return as_<k_blc>(classTable_, (k_dfk), 190);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_blf(k_blc* k_dfl){
 std::shared_ptr<Array_<uint8_t>> k_dfm;
-(k_dfm) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_dfm) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_dfm) = ((k_dfm)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_dfl)->k_blw))));
 (k_dfm) = ((k_dfm)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_dfl)->k_dfg))));
 (k_dfm) = ((k_dfm)->Cat(toBin_<bool>()(((k_dfl)->k_bli))));
@@ -10438,7 +10487,7 @@ if(!((((((u'\u0061') <= (k_efn)) && ((k_efn) <= (u'\u007A'))) || (((u'\u0041') <
 (k_ag)((65542LL), ((k_efq)()), (std::shared_ptr<Array_<std::shared_ptr<Array_<char16_t>>>>(new Array_<std::shared_ptr<Array_<char16_t>>>(1, ((k_efr)((k_efn)))))));
 return std::shared_ptr<Array_<char16_t>>(new Array_<char16_t>(0));
 }
-(k_efs) = (newArray_<char16_t, std::shared_ptr<Array_<char16_t>>>(1, (128LL)));
+(k_efs) = (newArray_<char16_t, 1, std::shared_ptr<Array_<char16_t>>>(1, (128LL)));
 (k_eft) = (0LL);
 (k_efu) = (false);
 do{
@@ -10723,7 +10772,7 @@ return as_<k_bww>(classTable_, (k_eln), 198);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_bwz(k_bww* k_elo){
 std::shared_ptr<Array_<uint8_t>> k_elp;
-(k_elp) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_elp) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_elp) = ((k_elp)->Cat(toBin_<k_hc*>()(((k_elo)->k_bxy))));
 (k_elp) = ((k_elp)->Cat(toBin_<k_gt*>()(((k_elo)->k_or))));
 (k_elp) = ((k_elp)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_elo)->k_os))));
@@ -10792,7 +10841,7 @@ return as_<k_bxd>(classTable_, (k_emi), 206);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_bxg(k_bxd* k_emj){
 std::shared_ptr<Array_<uint8_t>> k_emk;
-(k_emk) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_emk) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_emk) = ((k_emk)->Cat(toBin_<k_hh*>()(((k_emj)->k_emf))));
 (k_emk) = ((k_emk)->Cat(toBin_<k_gt*>()(((k_emj)->k_or))));
 (k_emk) = ((k_emk)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_emj)->k_os))));
@@ -11021,7 +11070,7 @@ return as_<k_bxn>(classTable_, (k_epz), 214);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_bxq(k_bxn* k_eqa){
 std::shared_ptr<Array_<uint8_t>> k_eqb;
-(k_eqb) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_eqb) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_eqb) = ((k_eqb)->Cat(toBin_<List_<k_hm*>*>()(((k_eqa)->k_eox))));
 (k_eqb) = ((k_eqb)->Cat(toBin_<k_gt*>()(((k_eqa)->k_or))));
 (k_eqb) = ((k_eqb)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_eqa)->k_os))));
@@ -11117,7 +11166,7 @@ return as_<k_cag>(classTable_, (k_erg), 222);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_caj(k_cag* k_erh){
 std::shared_ptr<Array_<uint8_t>> k_eri;
-(k_eri) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_eri) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_eri) = ((k_eri)->Cat(toBin_<k_hc*>()(((k_erh)->k_cbo))));
 (k_eri) = ((k_eri)->Cat(toBin_<k_gt*>()(((k_erh)->k_or))));
 (k_eri) = ((k_eri)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_erh)->k_os))));
@@ -11178,7 +11227,7 @@ return as_<k_cap>(classTable_, (k_erz), 238);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_cas(k_cap* k_esa){
 std::shared_ptr<Array_<uint8_t>> k_esb;
-(k_esb) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_esb) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_esb) = ((k_esb)->Cat(toBin_<List_<k_hr*>*>()(((k_esa)->k_cbr))));
 (k_esb) = ((k_esb)->Cat(toBin_<k_hc*>()(((k_esa)->k_cbo))));
 (k_esb) = ((k_esb)->Cat(toBin_<k_gt*>()(((k_esa)->k_or))));
@@ -11225,7 +11274,7 @@ return as_<k_caz>(classTable_, (k_est), 254);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_cbc(k_caz* k_esu){
 std::shared_ptr<Array_<uint8_t>> k_esv;
-(k_esv) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_esv) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_esv) = ((k_esv)->Cat(toBin_<k_hm*>()(((k_esu)->k_cdx))));
 (k_esv) = ((k_esv)->Cat(toBin_<k_hm*>()(((k_esu)->k_cec))));
 return k_esv;
@@ -11270,7 +11319,7 @@ return as_<k_cau>(classTable_, (k_ete), 246);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_cax(k_cau* k_etf){
 std::shared_ptr<Array_<uint8_t>> k_etg;
-(k_etg) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_etg) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_etg) = ((k_etg)->Cat(toBin_<List_<k_caz*>*>()(((k_etf)->k_cdc))));
 (k_etg) = ((k_etg)->Cat(toBin_<k_cap*>()(((k_etf)->k_cdf))));
 (k_etg) = ((k_etg)->Cat(toBin_<k_gt*>()(((k_etf)->k_or))));
@@ -11337,7 +11386,7 @@ return as_<k_caf>(classTable_, (k_ety), 230);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_can(k_caf* k_etz){
 std::shared_ptr<Array_<uint8_t>> k_eua;
-(k_eua) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_eua) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_eua) = ((k_eua)->Cat(toBin_<k_cap*>()(((k_etz)->k_cbs))));
 (k_eua) = ((k_eua)->Cat(toBin_<List_<k_cau*>*>()(((k_etz)->k_cbt))));
 (k_eua) = ((k_eua)->Cat(toBin_<k_cap*>()(((k_etz)->k_cbw))));
@@ -11401,7 +11450,7 @@ return as_<k_cbi>(classTable_, (k_euu), 262);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_cbl(k_cbi* k_euv){
 std::shared_ptr<Array_<uint8_t>> k_euw;
-(k_euw) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_euw) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_euw) = ((k_euw)->Cat(toBin_<int64_t>()(((k_euv)->k_cbn))));
 (k_euw) = ((k_euw)->Cat(toBin_<k_gt*>()(((k_euv)->k_or))));
 (k_euw) = ((k_euw)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_euv)->k_os))));
@@ -11485,7 +11534,7 @@ return as_<k_ccd>(classTable_, (k_ewc), 270);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_ccg(k_ccd* k_ewd){
 std::shared_ptr<Array_<uint8_t>> k_ewe;
-(k_ewe) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_ewe) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_ewe) = ((k_ewe)->Cat(toBin_<k_hm*>()(((k_ewd)->k_ccz))));
 (k_ewe) = ((k_ewe)->Cat(toBin_<k_gt*>()(((k_ewd)->k_or))));
 (k_ewe) = ((k_ewe)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_ewd)->k_os))));
@@ -11530,7 +11579,7 @@ return as_<k_ccp>(classTable_, (k_ewv), 286);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_ccs(k_ccp* k_eww){
 std::shared_ptr<Array_<uint8_t>> k_ewx;
-(k_ewx) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_ewx) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_ewx) = ((k_ewx)->Cat(toBin_<k_hm*>()(((k_eww)->k_cep))));
 (k_ewx) = ((k_ewx)->Cat(toBin_<bool>()(((k_eww)->k_cel))));
 (k_ewx) = ((k_ewx)->Cat(toBin_<bool>()(((k_eww)->k_cem))));
@@ -11580,7 +11629,7 @@ return as_<k_cck>(classTable_, (k_exh), 278);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_ccn(k_cck* k_exi){
 std::shared_ptr<Array_<uint8_t>> k_exj;
-(k_exj) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_exj) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_exj) = ((k_exj)->Cat(toBin_<k_hm*>()(((k_exi)->k_ccy))));
 (k_exj) = ((k_exj)->Cat(toBin_<List_<k_ccp*>*>()(((k_exi)->k_ccv))));
 (k_exj) = ((k_exj)->Cat(toBin_<k_hh*>()(((k_exi)->k_qj))));
@@ -11655,7 +11704,7 @@ return as_<k_cdl>(classTable_, (k_eyg), 294);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_cdo(k_cdl* k_eyh){
 std::shared_ptr<Array_<uint8_t>> k_eyi;
-(k_eyi) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_eyi) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_eyi) = ((k_eyi)->Cat(toBin_<k_hh*>()(((k_eyh)->k_qj))));
 (k_eyi) = ((k_eyi)->Cat(toBin_<int64_t>()(((k_eyh)->k_qm))));
 (k_eyi) = ((k_eyi)->Cat(toBin_<k_gt*>()(((k_eyh)->k_or))));
@@ -11718,7 +11767,7 @@ return as_<k_cdk>(classTable_, (k_eza), 302);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_cds(k_cdk* k_ezb){
 std::shared_ptr<Array_<uint8_t>> k_ezc;
-(k_ezc) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_ezc) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_ezc) = ((k_ezc)->Cat(toBin_<uint64_t>()(((k_ezb)->k_cdu))));
 (k_ezc) = ((k_ezc)->Cat(toBin_<k_hh*>()(((k_ezb)->k_qj))));
 (k_ezc) = ((k_ezc)->Cat(toBin_<int64_t>()(((k_ezb)->k_qm))));
@@ -11976,7 +12025,7 @@ return as_<k_cge>(classTable_, (k_fgg), 310);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_cgh(k_cge* k_fgh){
 std::shared_ptr<Array_<uint8_t>> k_fgi;
-(k_fgi) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_fgi) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_fgi) = ((k_fgi)->Cat(toBin_<int64_t>()(((k_fgh)->k_cgj))));
 (k_fgi) = ((k_fgi)->Cat(toBin_<k_hm*>()(((k_fgh)->k_cgm))));
 (k_fgi) = ((k_fgi)->Cat(toBin_<k_hm*>()(((k_fgh)->k_cgn))));
@@ -12195,7 +12244,7 @@ int64_t k_fkg; // idx
 while(true){
 if(((k_fkf)->At(k_fkg)) == (u'\u007A')){
 if((k_fkg) == (0LL)){
-(k_fkf) = (newArray_<char16_t, std::shared_ptr<Array_<char16_t>>>(1, (((k_fkf)->Len()) + (1LL))));
+(k_fkf) = (newArray_<char16_t, 1, std::shared_ptr<Array_<char16_t>>>(1, (((k_fkf)->Len()) + (1LL))));
 k_fko<std::shared_ptr<Array_<char16_t>>, char16_t>((k_fkf), (std::shared_ptr<Array_<int64_t>>(new Array_<int64_t>(1, (0LL)))), (u'\u0061'));
 }
 else{
@@ -12240,7 +12289,7 @@ return as_<k_cim>(classTable_, (k_fkv), 318);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_cip(k_cim* k_fkw){
 std::shared_ptr<Array_<uint8_t>> k_fkx;
-(k_fkx) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_fkx) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_fkx) = ((k_fkx)->Cat(toBin_<k_gt*>()(((k_fkw)->k_or))));
 (k_fkx) = ((k_fkx)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_fkw)->k_os))));
 (k_fkx) = ((k_fkx)->Cat(toBin_<k_ga*>()(((k_fkw)->k_ot))));
@@ -12297,7 +12346,7 @@ return as_<k_cil>(classTable_, (k_fln), 326);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_cit(k_cil* k_flo){
 std::shared_ptr<Array_<uint8_t>> k_flp;
-(k_flp) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_flp) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_flp) = ((k_flp)->Cat(toBin_<k_hh*>()(((k_flo)->k_civ))));
 (k_flp) = ((k_flp)->Cat(toBin_<k_gt*>()(((k_flo)->k_or))));
 (k_flp) = ((k_flp)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_flo)->k_os))));
@@ -12355,7 +12404,7 @@ return as_<k_cix>(classTable_, (k_fmg), 334);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_cja(k_cix* k_fmh){
 std::shared_ptr<Array_<uint8_t>> k_fmi;
-(k_fmi) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_fmi) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_fmi) = ((k_fmi)->Cat(toBin_<int64_t>()(((k_fmh)->k_cjc))));
 (k_fmi) = ((k_fmi)->Cat(toBin_<k_gt*>()(((k_fmh)->k_or))));
 (k_fmi) = ((k_fmi)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_fmh)->k_os))));
@@ -12399,7 +12448,7 @@ return as_<k_cjk>(classTable_, (k_fmz), 350);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_cjn(k_cjk* k_fna){
 std::shared_ptr<Array_<uint8_t>> k_fnb;
-(k_fnb) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_fnb) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_fnb) = ((k_fnb)->Cat(toBin_<k_hh*>()(((k_fna)->k_ckd))));
 (k_fnb) = ((k_fnb)->Cat(toBin_<bool>()(((k_fna)->k_ckf))));
 return k_fnb;
@@ -12447,7 +12496,7 @@ return as_<k_cjf>(classTable_, (k_fnk), 342);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_cji(k_cjf* k_fnl){
 std::shared_ptr<Array_<uint8_t>> k_fnm;
-(k_fnm) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_fnm) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_fnm) = ((k_fnm)->Cat(toBin_<int64_t>()(((k_fnl)->k_fib))));
 (k_fnm) = ((k_fnm)->Cat(toBin_<List_<std::shared_ptr<Array_<char16_t>>>*>()(((k_fnl)->k_fic))));
 (k_fnm) = ((k_fnm)->Cat(toBin_<List_<k_cjk*>*>()(((k_fnl)->k_cjv))));
@@ -12513,7 +12562,7 @@ return as_<k_ckk>(classTable_, (k_fog), 358);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_ckn(k_ckk* k_foh){
 std::shared_ptr<Array_<uint8_t>> k_foi;
-(k_foi) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_foi) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_foi) = ((k_foi)->Cat(toBin_<int64_t>()(((k_foh)->k_ckr))));
 (k_foi) = ((k_foi)->Cat(toBin_<k_hh*>()(((k_foh)->k_ckt))));
 (k_foi) = ((k_foi)->Cat(toBin_<k_gt*>()(((k_foh)->k_or))));
@@ -12576,7 +12625,7 @@ return as_<k_ckz>(classTable_, (k_fpa), 366);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_clc(k_ckz* k_fpb){
 std::shared_ptr<Array_<uint8_t>> k_fpc;
-(k_fpc) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_fpc) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_fpc) = ((k_fpc)->Cat(toBin_<k_hh*>()(((k_fpb)->k_cle))));
 (k_fpc) = ((k_fpc)->Cat(toBin_<k_hh*>()(((k_fpb)->k_clf))));
 (k_fpc) = ((k_fpc)->Cat(toBin_<k_gt*>()(((k_fpb)->k_or))));
@@ -12700,7 +12749,7 @@ return as_<k_cwq>(classTable_, (k_fra), 382);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_cwt(k_cwq* k_frb){
 std::shared_ptr<Array_<uint8_t>> k_frc;
-(k_frc) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_frc) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_frc) = ((k_frc)->Cat(toBin_<k_hm*>()(((k_frb)->k_fqr))));
 (k_frc) = ((k_frc)->Cat(toBin_<k_cap*>()(((k_frb)->k_fqs))));
 (k_frc) = ((k_frc)->Cat(toBin_<k_gt*>()(((k_frb)->k_or))));
@@ -12769,7 +12818,7 @@ return as_<k_cwl>(classTable_, (k_fru), 374);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_cwo(k_cwl* k_frv){
 std::shared_ptr<Array_<uint8_t>> k_frw;
-(k_frw) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_frw) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_frw) = ((k_frw)->Cat(toBin_<k_hm*>()(((k_frv)->k_fqd))));
 (k_frw) = ((k_frw)->Cat(toBin_<k_cap*>()(((k_frv)->k_fqg))));
 (k_frw) = ((k_frw)->Cat(toBin_<List_<k_cwq*>*>()(((k_frv)->k_fqo))));
@@ -12990,7 +13039,7 @@ return as_<k_cxc>(classTable_, (k_fvg), 398);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_cxf(k_cxc* k_fvh){
 std::shared_ptr<Array_<uint8_t>> k_fvi;
-(k_fvi) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_fvi) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_fvi) = ((k_fvi)->Cat(toBin_<List_<k_caz*>*>()(((k_fvh)->k_fth))));
 (k_fvi) = ((k_fvi)->Cat(toBin_<k_cap*>()(((k_fvh)->k_ftv))));
 (k_fvi) = ((k_fvi)->Cat(toBin_<k_gt*>()(((k_fvh)->k_or))));
@@ -13057,7 +13106,7 @@ return as_<k_cwx>(classTable_, (k_fwa), 390);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_cxa(k_cwx* k_fwb){
 std::shared_ptr<Array_<uint8_t>> k_fwc;
-(k_fwc) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_fwc) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_fwc) = ((k_fwc)->Cat(toBin_<k_hm*>()(((k_fwb)->k_fsz))));
 (k_fwc) = ((k_fwc)->Cat(toBin_<List_<k_cxc*>*>()(((k_fwb)->k_ftd))));
 (k_fwc) = ((k_fwc)->Cat(toBin_<k_cap*>()(((k_fwb)->k_ftx))));
@@ -13164,7 +13213,7 @@ return as_<k_cxk>(classTable_, (k_fxt), 406);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_cxn(k_cxk* k_fxu){
 std::shared_ptr<Array_<uint8_t>> k_fxv;
-(k_fxv) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_fxv) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_fxv) = ((k_fxv)->Cat(toBin_<k_hc*>()(((k_fxu)->k_cbo))));
 (k_fxv) = ((k_fxv)->Cat(toBin_<k_gt*>()(((k_fxu)->k_or))));
 (k_fxv) = ((k_fxv)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_fxu)->k_os))));
@@ -13228,7 +13277,7 @@ return as_<k_cxj>(classTable_, (k_fym), 414);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_cxr(k_cxj* k_fyn){
 std::shared_ptr<Array_<uint8_t>> k_fyo;
-(k_fyo) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_fyo) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_fyo) = ((k_fyo)->Cat(toBin_<k_hm*>()(((k_fyn)->k_fwz))));
 (k_fyo) = ((k_fyo)->Cat(toBin_<bool>()(((k_fyn)->k_fxh))));
 (k_fyo) = ((k_fyo)->Cat(toBin_<List_<k_hr*>*>()(((k_fyn)->k_fxb))));
@@ -13341,7 +13390,7 @@ return as_<k_cxv>(classTable_, (k_gad), 422);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_cxy(k_cxv* k_gae){
 std::shared_ptr<Array_<uint8_t>> k_gaf;
-(k_gaf) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_gaf) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_gaf) = ((k_gaf)->Cat(toBin_<k_hm*>()(((k_gae)->k_fzq))));
 (k_gaf) = ((k_gaf)->Cat(toBin_<k_hm*>()(((k_gae)->k_fzp))));
 (k_gaf) = ((k_gaf)->Cat(toBin_<k_hm*>()(((k_gae)->k_fzr))));
@@ -13498,7 +13547,7 @@ return as_<k_cye>(classTable_, (k_gcm), 430);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_cyh(k_cye* k_gcn){
 std::shared_ptr<Array_<uint8_t>> k_gco;
-(k_gco) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_gco) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_gco) = ((k_gco)->Cat(toBin_<k_hm*>()(((k_gcn)->k_gcj))));
 (k_gco) = ((k_gco)->Cat(toBin_<k_gt*>()(((k_gcn)->k_or))));
 (k_gco) = ((k_gco)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_gcn)->k_os))));
@@ -13577,7 +13626,7 @@ return as_<k_cyn>(classTable_, (k_gdq), 438);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_cyq(k_cyn* k_gdr){
 std::shared_ptr<Array_<uint8_t>> k_gds;
-(k_gds) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_gds) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_gds) = ((k_gds)->Cat(toBin_<k_hm*>()(((k_gdr)->k_gdl))));
 (k_gds) = ((k_gds)->Cat(toBin_<k_gt*>()(((k_gdr)->k_or))));
 (k_gds) = ((k_gds)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_gdr)->k_os))));
@@ -13677,7 +13726,7 @@ return as_<k_cza>(classTable_, (k_gey), 446);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_czd(k_cza* k_gez){
 std::shared_ptr<Array_<uint8_t>> k_gfa;
-(k_gfa) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_gfa) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_gfa) = ((k_gfa)->Cat(toBin_<k_hm*>()(((k_gez)->k_gev))));
 (k_gfa) = ((k_gfa)->Cat(toBin_<k_gt*>()(((k_gez)->k_or))));
 (k_gfa) = ((k_gfa)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_gez)->k_os))));
@@ -13783,7 +13832,7 @@ case u'\u0039':
 break;
 case u'\u005A':
 if((k_ggu) == (0LL)){
-(k_ggq) = (newArray_<char16_t, std::shared_ptr<Array_<char16_t>>>(1, (((k_ggq)->Len()) + (1LL))));
+(k_ggq) = (newArray_<char16_t, 1, std::shared_ptr<Array_<char16_t>>>(1, (((k_ggq)->Len()) + (1LL))));
 k_fko<std::shared_ptr<Array_<char16_t>>, char16_t>((k_ggq), (std::shared_ptr<Array_<int64_t>>(new Array_<int64_t>(1, (0LL)))), (u'\u0061'));
 }
 else{
@@ -14442,7 +14491,7 @@ if(!(((((((u'\u0061') <= (k_gra)) && ((k_gra) <= (u'\u007A'))) || (((u'\u0041') 
 (k_ag)((65548LL), ((k_efq)()), (std::shared_ptr<Array_<std::shared_ptr<Array_<char16_t>>>>(new Array_<std::shared_ptr<Array_<char16_t>>>(1, ((k_efr)((k_gra)))))));
 return std::shared_ptr<Array_<char16_t>>(new Array_<char16_t>(0));
 }
-(k_grd) = (newArray_<char16_t, std::shared_ptr<Array_<char16_t>>>(1, (128LL)));
+(k_grd) = (newArray_<char16_t, 1, std::shared_ptr<Array_<char16_t>>>(1, (128LL)));
 (k_gre) = (0LL);
 do{
 if((k_gre) == (128LL)){
@@ -14571,7 +14620,7 @@ return as_<k_ejg>(classTable_, (k_gtk), 454);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_ejj(k_ejg* k_gtl){
 std::shared_ptr<Array_<uint8_t>> k_gtm;
-(k_gtm) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_gtm) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_gtm) = ((k_gtm)->Cat(toBin_<k_gt*>()(((k_gtl)->k_or))));
 (k_gtm) = ((k_gtm)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_gtl)->k_os))));
 (k_gtm) = ((k_gtm)->Cat(toBin_<k_ga*>()(((k_gtl)->k_ot))));
@@ -14848,7 +14897,7 @@ return as_<k_ekj>(classTable_, (k_gxh), 462);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_ekm(k_ekj* k_gxi){
 std::shared_ptr<Array_<uint8_t>> k_gxj;
-(k_gxj) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_gxj) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_gxj) = ((k_gxj)->Cat(toBin_<k_bhw*>()(((k_gxi)->k_eku))));
 (k_gxj) = ((k_gxj)->Cat(toBin_<k_gt*>()(((k_gxi)->k_or))));
 (k_gxj) = ((k_gxj)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_gxi)->k_os))));
@@ -15586,7 +15635,7 @@ return as_<k_fcg>(classTable_, (k_hkg), 470);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_fcj(k_fcg* k_hkh){
 std::shared_ptr<Array_<uint8_t>> k_hki;
-(k_hki) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_hki) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_hki) = ((k_hki)->Cat(toBin_<int64_t>()(((k_hkh)->k_hiw))));
 (k_hki) = ((k_hki)->Cat(toBin_<k_hm*>()(((k_hkh)->k_hiq))));
 (k_hki) = ((k_hki)->Cat(toBin_<k_hh*>()(((k_hkh)->k_qj))));
@@ -16249,7 +16298,7 @@ return as_<k_fcp>(classTable_, (k_hux), 478);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_fcs(k_fcp* k_huy){
 std::shared_ptr<Array_<uint8_t>> k_huz;
-(k_huz) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_huz) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_huz) = ((k_huz)->Cat(toBin_<k_hm*>()(((k_huy)->k_hty))));
 (k_huz) = ((k_huz)->Cat(toBin_<k_hm*>()(((k_huy)->k_hub))));
 (k_huz) = ((k_huz)->Cat(toBin_<k_hm*>()(((k_huy)->k_hue))));
@@ -16340,7 +16389,7 @@ return as_<k_fcw>(classTable_, (k_hwe), 486);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_fcz(k_fcw* k_hwf){
 std::shared_ptr<Array_<uint8_t>> k_hwg;
-(k_hwg) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_hwg) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_hwg) = ((k_hwg)->Cat(toBin_<k_hh*>()(((k_hwf)->k_hvv))));
 (k_hwg) = ((k_hwg)->Cat(toBin_<k_hh*>()(((k_hwf)->k_qj))));
 (k_hwg) = ((k_hwg)->Cat(toBin_<int64_t>()(((k_hwf)->k_qm))));
@@ -16450,7 +16499,7 @@ return as_<k_fdd>(classTable_, (k_hxy), 494);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_fdg(k_fdd* k_hxz){
 std::shared_ptr<Array_<uint8_t>> k_hya;
-(k_hya) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_hya) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_hya) = ((k_hya)->Cat(toBin_<List_<k_hm*>*>()(((k_hxz)->k_hxc))));
 (k_hya) = ((k_hya)->Cat(toBin_<k_hh*>()(((k_hxz)->k_hxl))));
 (k_hya) = ((k_hya)->Cat(toBin_<k_hh*>()(((k_hxz)->k_qj))));
@@ -16734,7 +16783,7 @@ return as_<k_fdk>(classTable_, (k_ica), 502);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_fdn(k_fdk* k_icb){
 std::shared_ptr<Array_<uint8_t>> k_icc;
-(k_icc) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_icc) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_icc) = ((k_icc)->Cat(toBin_<int64_t>()(((k_icb)->k_hzd))));
 (k_icc) = ((k_icc)->Cat(toBin_<k_hm*>()(((k_icb)->k_hyv))));
 (k_icc) = ((k_icc)->Cat(toBin_<k_hh*>()(((k_icb)->k_hyy))));
@@ -16828,7 +16877,7 @@ return as_<k_fdr>(classTable_, (k_idi), 510);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_fdu(k_fdr* k_idj){
 std::shared_ptr<Array_<uint8_t>> k_idk;
-(k_idk) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_idk) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_idk) = ((k_idk)->Cat(toBin_<k_hm*>()(((k_idj)->k_icy))));
 (k_idk) = ((k_idk)->Cat(toBin_<k_hh*>()(((k_idj)->k_ide))));
 (k_idk) = ((k_idk)->Cat(toBin_<k_hh*>()(((k_idj)->k_qj))));
@@ -16919,7 +16968,7 @@ return as_<k_fdy>(classTable_, (k_ieo), 518);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_feb(k_fdy* k_iep){
 std::shared_ptr<Array_<uint8_t>> k_ieq;
-(k_ieq) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_ieq) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_ieq) = ((k_ieq)->Cat(toBin_<k_hm*>()(((k_iep)->k_ief))));
 (k_ieq) = ((k_ieq)->Cat(toBin_<k_hh*>()(((k_iep)->k_iek))));
 (k_ieq) = ((k_ieq)->Cat(toBin_<k_hm*>()(((k_iep)->k_iel))));
@@ -17145,7 +17194,7 @@ return as_<k_feh>(classTable_, (k_iif), 526);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_fek(k_feh* k_iig){
 std::shared_ptr<Array_<uint8_t>> k_iih;
-(k_iih) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_iih) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_iih) = ((k_iih)->Cat(toBin_<k_hm*>()(((k_iig)->k_iht))));
 (k_iih) = ((k_iih)->Cat(toBin_<k_hm*>()(((k_iig)->k_ihy))));
 (k_iih) = ((k_iih)->Cat(toBin_<k_hh*>()(((k_iig)->k_qj))));
@@ -17628,7 +17677,7 @@ return as_<k_feo>(classTable_, (k_imx), 534);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_fer(k_feo* k_imy){
 std::shared_ptr<Array_<uint8_t>> k_imz;
-(k_imz) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_imz) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_imz) = ((k_imz)->Cat(toBin_<k_hm*>()(((k_imy)->k_igb))));
 (k_imz) = ((k_imz)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_imy)->k_ijn))));
 (k_imz) = ((k_imz)->Cat(toBin_<k_vb*>()(((k_imy)->k_ika))));
@@ -17728,7 +17777,7 @@ return as_<k_fez>(classTable_, (k_iod), 542);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_ffc(k_fez* k_ioe){
 std::shared_ptr<Array_<uint8_t>> k_iof;
-(k_iof) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_iof) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_iof) = ((k_iof)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_ioe)->k_hog))));
 (k_iof) = ((k_iof)->Cat(toBin_<k_hh*>()(((k_ioe)->k_qj))));
 (k_iof) = ((k_iof)->Cat(toBin_<int64_t>()(((k_ioe)->k_qm))));
@@ -17803,7 +17852,7 @@ return as_<k_ffg>(classTable_, (k_ipb), 550);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_ffj(k_ffg* k_ipc){
 std::shared_ptr<Array_<uint8_t>> k_ipd;
-(k_ipd) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_ipd) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_ipd) = ((k_ipd)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_ipc)->k_hms))));
 (k_ipd) = ((k_ipd)->Cat(toBin_<k_hh*>()(((k_ipc)->k_qj))));
 (k_ipd) = ((k_ipd)->Cat(toBin_<int64_t>()(((k_ipc)->k_qm))));
@@ -17877,7 +17926,7 @@ return as_<k_ffn>(classTable_, (k_ipz), 558);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_ffq(k_ffn* k_iqa){
 std::shared_ptr<Array_<uint8_t>> k_iqb;
-(k_iqb) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_iqb) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_iqb) = ((k_iqb)->Cat(toBin_<double>()(((k_iqa)->k_hjm))));
 (k_iqb) = ((k_iqb)->Cat(toBin_<k_hh*>()(((k_iqa)->k_qj))));
 (k_iqb) = ((k_iqb)->Cat(toBin_<int64_t>()(((k_iqa)->k_qm))));
@@ -18021,7 +18070,7 @@ if(k_isk){
 (k_isu) = (new k_fez());
 (k_ccu)((k_isu), (67586LL), ((k_iqs)->k_or));
 ((k_isu)->k_qj) = ((k_iqs)->k_qj);
-(k_isv) = (newArray_<char16_t, std::shared_ptr<Array_<char16_t>>>(1, (((k_iqs)->k_igk)->Len())));
+(k_isv) = (newArray_<char16_t, 1, std::shared_ptr<Array_<char16_t>>>(1, (((k_iqs)->k_igk)->Len())));
 (k_isw) = (0LL);
 (k_isx) = ((k_iqs)->k_igk);
 k_ayb<List_<k_hm*>*>((k_isx), (std::shared_ptr<Array_<int64_t>>(new Array_<int64_t>(1, (0LL)))));
@@ -18072,7 +18121,7 @@ return as_<k_ffu>(classTable_, (k_itc), 566);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_ffx(k_ffu* k_itd){
 std::shared_ptr<Array_<uint8_t>> k_ite;
-(k_ite) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_ite) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_ite) = ((k_ite)->Cat(toBin_<List_<k_hm*>*>()(((k_itd)->k_igk))));
 (k_ite) = ((k_ite)->Cat(toBin_<k_hh*>()(((k_itd)->k_qj))));
 (k_ite) = ((k_ite)->Cat(toBin_<int64_t>()(((k_itd)->k_qm))));
@@ -18572,7 +18621,7 @@ return as_<k_fjz>(classTable_, (k_jch), 574);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_fkc(k_fjz* k_jci){
 std::shared_ptr<Array_<uint8_t>> k_jcj;
-(k_jcj) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_jcj) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_jcj) = ((k_jcj)->Cat(toBin_<k_gt*>()(((k_jci)->k_or))));
 (k_jcj) = ((k_jcj)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_jci)->k_os))));
 (k_jcj) = ((k_jcj)->Cat(toBin_<k_ga*>()(((k_jci)->k_ot))));
@@ -20840,7 +20889,7 @@ List_<k_hm*>* k_kmi; // items
 if(!(((k_kmg)->k_qm) != (0LL))){
 throw 0xE9170000U;
 }
-k_us<List_<std::shared_ptr<Array_<char16_t>>>*, std::shared_ptr<Array_<char16_t>>>((k_ar), (std::shared_ptr<Array_<int64_t>>(new Array_<int64_t>(1, (0LL)))), (((std::shared_ptr<Array_<char16_t>>(new Array_<char16_t>(10, u'\u006E', u'\u0065', u'\u0077', u'\u0041', u'\u0072', u'\u0072', u'\u0061', u'\u0079', u'\u005F', u'\u003C')))->Cat(k_y<std::shared_ptr<Array_<char16_t>>>(((k_bep)(((k_kmg)->k_hxl))), (std::shared_ptr<Array_<int64_t>>(new Array_<int64_t>(1, (0LL)))))))->Cat(((std::shared_ptr<Array_<char16_t>>(new Array_<char16_t>(2, u'\u002C', u'\u0020')))->Cat(k_y<std::shared_ptr<Array_<char16_t>>>(((k_bep)(((k_kmg)->k_qj))), (std::shared_ptr<Array_<int64_t>>(new Array_<int64_t>(1, (0LL)))))))->Cat(((std::shared_ptr<Array_<char16_t>>(new Array_<char16_t>(2, u'\u003E', u'\u0028')))->Cat(k_y<int64_t>((((k_kmg)->k_hxc)->Len()), (std::shared_ptr<Array_<int64_t>>(new Array_<int64_t>(1, (0LL)))))))->Cat(std::shared_ptr<Array_<char16_t>>(new Array_<char16_t>(0)))))));
+k_us<List_<std::shared_ptr<Array_<char16_t>>>*, std::shared_ptr<Array_<char16_t>>>((k_ar), (std::shared_ptr<Array_<int64_t>>(new Array_<int64_t>(1, (0LL)))), (((std::shared_ptr<Array_<char16_t>>(new Array_<char16_t>(10, u'\u006E', u'\u0065', u'\u0077', u'\u0041', u'\u0072', u'\u0072', u'\u0061', u'\u0079', u'\u005F', u'\u003C')))->Cat(k_y<std::shared_ptr<Array_<char16_t>>>(((k_bep)(((k_kmg)->k_hxl))), (std::shared_ptr<Array_<int64_t>>(new Array_<int64_t>(1, (0LL)))))))->Cat(((std::shared_ptr<Array_<char16_t>>(new Array_<char16_t>(2, u'\u002C', u'\u0020')))->Cat(k_y<int64_t>((((k_kmg)->k_hxc)->Len()), (std::shared_ptr<Array_<int64_t>>(new Array_<int64_t>(1, (0LL)))))))->Cat(((std::shared_ptr<Array_<char16_t>>(new Array_<char16_t>(2, u'\u002C', u'\u0020')))->Cat(k_y<std::shared_ptr<Array_<char16_t>>>(((k_bep)(((k_kmg)->k_qj))), (std::shared_ptr<Array_<int64_t>>(new Array_<int64_t>(1, (0LL)))))))->Cat(((std::shared_ptr<Array_<char16_t>>(new Array_<char16_t>(2, u'\u003E', u'\u0028')))->Cat(k_y<int64_t>((((k_kmg)->k_hxc)->Len()), (std::shared_ptr<Array_<int64_t>>(new Array_<int64_t>(1, (0LL)))))))->Cat(std::shared_ptr<Array_<char16_t>>(new Array_<char16_t>(0))))))));
 (k_kmi) = ((k_kmg)->k_hxc);
 k_ayb<List_<k_hm*>*>((k_kmi), (std::shared_ptr<Array_<int64_t>>(new Array_<int64_t>(1, (0LL)))));
 while(!(k_ayd<List_<k_hm*>*>((k_kmi), (std::shared_ptr<Array_<int64_t>>(new Array_<int64_t>(1, (0LL))))))){
@@ -21925,7 +21974,7 @@ if(!eqAddr_(((k_kyg)->k_qj), (nullptr))){
 (k_kyt) = ((k_glz)());
 k_us<List_<std::shared_ptr<Array_<char16_t>>>*, std::shared_ptr<Array_<char16_t>>>((k_bo), (std::shared_ptr<Array_<int64_t>>(new Array_<int64_t>(1, (0LL)))), (((std::shared_ptr<Array_<char16_t>>(new Array_<char16_t>(0)))->Cat(k_y<std::shared_ptr<Array_<char16_t>>>((k_kyt), (std::shared_ptr<Array_<int64_t>>(new Array_<int64_t>(1, (0LL)))))))->Cat(std::shared_ptr<Array_<char16_t>>(new Array_<char16_t>(1, u'\u003D')))));
 }
-(k_kyu) = (newArray_<std::shared_ptr<Array_<char16_t>>, std::shared_ptr<Array_<std::shared_ptr<Array_<char16_t>>>>>(1, (k_kym)));
+(k_kyu) = (newArray_<std::shared_ptr<Array_<char16_t>>, 1, std::shared_ptr<Array_<std::shared_ptr<Array_<char16_t>>>>>(1, (k_kym)));
 }
 k_us<List_<std::shared_ptr<Array_<char16_t>>>*, std::shared_ptr<Array_<char16_t>>>((k_bo), (std::shared_ptr<Array_<int64_t>>(new Array_<int64_t>(1, (0LL)))), (std::shared_ptr<Array_<char16_t>>(new Array_<char16_t>(1, u'\u0028'))));
 (k_gim)(((k_kyg)->k_ccy));
@@ -22261,7 +22310,7 @@ return as_<k_jie>(classTable_, (k_ldt), 582);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_jih(k_jie* k_ldu){
 std::shared_ptr<Array_<uint8_t>> k_ldv;
-(k_ldv) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_ldv) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_ldv) = ((k_ldv)->Cat(toBin_<k_fz*>()(((k_ldu)->k_jij))));
 (k_ldv) = ((k_ldv)->Cat(toBin_<k_gt*>()(((k_ldu)->k_or))));
 (k_ldv) = ((k_ldv)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_ldu)->k_os))));
@@ -22320,7 +22369,7 @@ return as_<k_jim>(classTable_, (k_lem), 590);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_jip(k_jim* k_len){
 std::shared_ptr<Array_<uint8_t>> k_leo;
-(k_leo) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_leo) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_leo) = ((k_leo)->Cat(toBin_<k_bww*>()(((k_len)->k_jir))));
 (k_leo) = ((k_leo)->Cat(toBin_<k_gt*>()(((k_len)->k_or))));
 (k_leo) = ((k_leo)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_len)->k_os))));
@@ -22379,7 +22428,7 @@ return as_<k_jit>(classTable_, (k_lff), 598);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_jiw(k_jit* k_lfg){
 std::shared_ptr<Array_<uint8_t>> k_lfh;
-(k_lfh) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_lfh) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_lfh) = ((k_lfh)->Cat(toBin_<k_bxd*>()(((k_lfg)->k_jiy))));
 (k_lfh) = ((k_lfh)->Cat(toBin_<k_gt*>()(((k_lfg)->k_or))));
 (k_lfh) = ((k_lfh)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_lfg)->k_os))));
@@ -22438,7 +22487,7 @@ return as_<k_jja>(classTable_, (k_lfy), 606);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_jjd(k_jja* k_lfz){
 std::shared_ptr<Array_<uint8_t>> k_lga;
-(k_lga) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_lga) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_lga) = ((k_lga)->Cat(toBin_<k_uw*>()(((k_lfz)->k_jjf))));
 (k_lga) = ((k_lga)->Cat(toBin_<k_gt*>()(((k_lfz)->k_or))));
 (k_lga) = ((k_lga)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_lfz)->k_os))));
@@ -22497,7 +22546,7 @@ return as_<k_jjh>(classTable_, (k_lgr), 614);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_jjk(k_jjh* k_lgs){
 std::shared_ptr<Array_<uint8_t>> k_lgt;
-(k_lgt) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_lgt) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_lgt) = ((k_lgt)->Cat(toBin_<k_bxn*>()(((k_lgs)->k_jjm))));
 (k_lgt) = ((k_lgt)->Cat(toBin_<k_gt*>()(((k_lgs)->k_or))));
 (k_lgt) = ((k_lgt)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_lgs)->k_os))));
@@ -23502,7 +23551,7 @@ k_hm* k_lza; // ast
 k_lva = k_lux;
 switch(k_lva){
 case u'\u0022':
-(k_lvc) = (newArray_<char16_t, std::shared_ptr<Array_<char16_t>>>(1, (1024LL)));
+(k_lvc) = (newArray_<char16_t, 1, std::shared_ptr<Array_<char16_t>>>(1, (1024LL)));
 (k_lvd) = (0LL);
 (k_lve) = (false);
 while(true){
@@ -23736,7 +23785,7 @@ case u'\u0074':
 return u'\u0009';
 break;
 case u'\u0075':
-(k_lzq) = (newArray_<char16_t, std::shared_ptr<Array_<char16_t>>>(1, (6LL)));
+(k_lzq) = (newArray_<char16_t, 1, std::shared_ptr<Array_<char16_t>>>(1, (6LL)));
 ((k_lzq)->At(0LL)) = (u'\u0030');
 ((k_lzq)->At(1LL)) = (u'\u0078');
 for(k_lzu = (0LL), k_lzv = (3LL); k_lzu <= k_lzv; k_lzu += (1LL)){
@@ -23783,7 +23832,7 @@ return as_<k_lyb>(classTable_, (k_mac), 622);
 // _toBin
 static std::shared_ptr<Array_<uint8_t>> k_lye(k_lyb* k_mad){
 std::shared_ptr<Array_<uint8_t>> k_mae;
-(k_mae) = (newArray_<uint8_t, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
+(k_mae) = (newArray_<uint8_t, 1, std::shared_ptr<Array_<uint8_t>>>(1, (0LL)));
 (k_mae) = ((k_mae)->Cat(toBin_<k_gt*>()(((k_mad)->k_or))));
 (k_mae) = ((k_mae)->Cat(toBin_<std::shared_ptr<Array_<char16_t>>>()(((k_mad)->k_os))));
 (k_mae) = ((k_mae)->Cat(toBin_<k_ga*>()(((k_mad)->k_ot))));
@@ -23832,7 +23881,7 @@ k_cbi* k_mdx; // type
 k_cix* k_mec; // type
 (k_mav) = (nullptr);
 (k_maw) = ((k_bvt)((k_bi), (k_mas), (k_mat)));
-(k_max) = (newArray_<char16_t, std::shared_ptr<Array_<char16_t>>>(1, (1024LL)));
+(k_max) = (newArray_<char16_t, 1, std::shared_ptr<Array_<char16_t>>>(1, (1024LL)));
 (k_may) = (0LL);
 (k_maz) = (10LL);
 (k_mba) = (false);

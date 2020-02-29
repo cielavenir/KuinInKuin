@@ -987,6 +987,33 @@ end func
 
 func buildExprNewArray(ast: \ast@AstExprNewArray)
 	assert ast.varKind <> %unknown
+	do @codes.add("newArray_<\{@getType(ast.itemType)}, \{^ast.idces}, \{@getType(ast.type)}>(\{^ast.idces}")
+	block
+		var items: list<\ast@AstExpr> :: ast.idces
+		do items.head()
+		while(!items.term())
+			do @codes.add(", (")
+			do @buildExpr(items.get())
+			do @codes.add(")")
+			do items.next()
+		end while
+	end block
+	do @codes.add(")")
+{
+	do @codes.add("newArrayRec2_<\{@getType(ast.itemType)}")
+	block
+		var items: list<\ast@AstExpr> :: ast.idces
+		do items.head()
+		while(!items.term())
+			do @codes.add(", (")
+			do @buildExpr(items.get())
+			do @codes.add(")")
+			do items.next()
+		end while
+	end block
+	do @codes.add(">()")
+}
+{
 	do @codes.add("newArray_<\{@getType(ast.itemType)}, \{@getType(ast.type)}>(\{^ast.idces}")
 	block
 		var items: list<\ast@AstExpr> :: ast.idces
@@ -999,6 +1026,7 @@ func buildExprNewArray(ast: \ast@AstExprNewArray)
 		end while
 	end block
 	do @codes.add(")")
+}
 end func
 
 func buildExprAs(ast: \ast@AstExprAs)
