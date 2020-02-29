@@ -59,8 +59,8 @@ template<typename T> struct Array_ : public Ref_ {
 	std::shared_ptr<Array_<T>> Cat(const std::shared_ptr<Array_<T>> t) noexcept {
 		std::shared_ptr<Array_<T>> r(new Array_<T>());
 		r->B = new T[static_cast<size_t>(L + t->L + bufLen_<T>())];
-		memcpy(r->B, B, sizeof(T) * static_cast<size_t>(L));
-		memcpy(r->B + L, t->B, sizeof(T) * static_cast<size_t>(t->L + bufLen_<T>()));
+		std::copy(B, B + L, r->B);
+		std::copy(t->B, t->B + t->L + bufLen_<T>(), r->B + L);
 		r->L = L + t->L;
 		return r;
 	}
