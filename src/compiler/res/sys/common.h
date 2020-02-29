@@ -313,45 +313,23 @@ static bool moveFile_(const char16_t* d, const char16_t* s) noexcept {
 #   define BOOST_MOVE_FILE(OLD,NEW)()
 #endif
 
-#if 0
-template<typename T, size_t N> std::shared_ptr<Array_<T>> newArrayRec2_() noexcept {
-	std::shared_ptr<Array_<T>> r(new Array_<T>());
-	r->L = N;
-	size_t s = static_cast<size_t>(N + bufLen_<T>());
-	r->B = new T[s];
-	memset(r->B, 0, sizeof(T) * s);
-	return r;
-}
-
-template<typename T, size_t N, size_t M, size_t... Tail> auto newArrayRec2_() noexcept {
-	typedef decltype(newArrayRec2_<T,M,Tail...>()) X;
-	std::shared_ptr<Array_<X>> r(new Array_<X>());
-	r->L = N;
-	size_t s = static_cast<size_t>(N + 0);
-	r->B = new X[s];
-	for (int64_t i = 0; i < N; i++)
-		r->B[i] = newArrayRec2_<T,M,Tail...>();
-	return r;
-}
-#endif
-
 template<typename T,size_t n>
 struct ArrayBuilder{
-	auto newArrayRec2_(int64_t n_,const int64_t* b) noexcept {
-		typedef decltype(ArrayBuilder<T,n-1>().newArrayRec2_(n_,b)) X;
+	auto newArrayRec_(int64_t n_,const int64_t* b) noexcept {
+		typedef decltype(ArrayBuilder<T,n-1>().newArrayRec_(n_,b)) X;
 		std::shared_ptr<Array_<X>> r(new Array_<X>());
 		int64_t N = b[n_-n];
 		r->L = N;
 		size_t s = static_cast<size_t>(N + 0);
 		r->B = new X[s];
 		for (int64_t i = 0; i < N; i++)
-			r->B[i] = ArrayBuilder<T,n-1>().newArrayRec2_(n_,b);
+			r->B[i] = ArrayBuilder<T,n-1>().newArrayRec_(n_,b);
 		return r;
 	}
 };
 template<typename T>
 struct ArrayBuilder<T,1>{
-	std::shared_ptr<Array_<T>> newArrayRec2_(int64_t n_,const int64_t* b) noexcept {
+	std::shared_ptr<Array_<T>> newArrayRec_(int64_t n_,const int64_t* b) noexcept {
 		std::shared_ptr<Array_<T>> r(new Array_<T>());
 		int64_t N = b[n_-1];
 		r->L = N;
@@ -362,28 +340,6 @@ struct ArrayBuilder<T,1>{
 	}
 };
 
-template<typename T> std::shared_ptr<Array_<T>> newArrayRec_(int64_t n, int64_t x, const int64_t* b) noexcept {
-	if (x != n - 1){
-		abort();
-	}else{
-		std::shared_ptr<Array_<T>> r(new Array_<T>());
-		r->L = b[x];
-		size_t s = static_cast<size_t>(b[x] + bufLen_<T>());
-		r->B = new T[s];
-		memset(r->B, 0, sizeof(T) * s);
-		return r;
-	}
-/*
-	{
-		std::shared_ptr<Array_<void*>> r(new Array_<void*>());
-		r->L = b[x];
-		r->B = new void*[static_cast<size_t>(b[x])];
-		for (int64_t i = 0; i < b[x]; i++)
-			r->B[i] = newArrayRec_<T>(n, x + 1, b);
-		return r;
-	}
-*/
-}
 template<typename T, size_t n, typename R> R newArray_(int64_t _, ...) noexcept {
 	if (n > 64)
 		return nullptr;
@@ -393,7 +349,7 @@ template<typename T, size_t n, typename R> R newArray_(int64_t _, ...) noexcept 
 	for (int64_t i = 0; i < n; i++)
 		b[i] = va_arg(l, int64_t);
 	va_end(l);
-	return ArrayBuilder<T,n>().newArrayRec2_(n, b);
+	return ArrayBuilder<T,n>().newArrayRec_(n, b);
 }
 
 template<typename T> std::shared_ptr<Array_<T>> toArray_(List_<T>* l) noexcept {
