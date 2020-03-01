@@ -6,7 +6,7 @@
 +func[__raw, cmdLine]cmdLine(): [][]char
 end func
 
-+func[_exit_code]exitCode(code: int)
++func[__raw, exit_code]exitCode(code: int)
 	if(dbg)
 		if(code < 0 | 0xFFFFFFFF < code)
 			throw excpt@dbgArgOutDomain

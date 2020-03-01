@@ -733,6 +733,8 @@
 		; TODO:
 	case "exist"
 		; TODO:
+	case "exit_code"
+		; TODO:
 	default
 		assert false
 	end switch

@@ -935,6 +935,10 @@
 		var handle: \cpp\output@CppInfo :: search(members, "handle")
 		do codes.add("writer_* r_ = reinterpret_cast<writer_*>(\{me_.id}->\{handle.id});\n")
 		do codes.add("writeUtf8_(r_->F, \{n.id});\n")
+	case "exit_code"
+		do args.head()
+		var n: \cpp\output@CppInfo :: \cpp\output@getInfo(args.get())
+		do codes.add("exit_code_ = \{n.id};\n")
 	case "wnd_editBaseGetText"
 		; TODO:
 	case "wnd_makeEditMulti"
