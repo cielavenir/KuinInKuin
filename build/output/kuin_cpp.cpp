@@ -317,21 +317,21 @@ static bool moveFile_(const char16_t* d, const char16_t* s) noexcept {
 
 template<typename T,size_t n>
 struct ArrayBuilder{
-	auto newArrayRec_(int64_t n_,const int64_t* b) noexcept {
-		typedef decltype(ArrayBuilder<T,n-1>().newArrayRec_(n_,b)) X;
+	static auto newArrayRec_(int64_t n_,const int64_t* b) noexcept {
+		typedef decltype(ArrayBuilder<T,n-1>::newArrayRec_(n_,b)) X;
 		std::shared_ptr<Array_<X>> r(new Array_<X>());
 		int64_t N = b[n_-n];
 		r->L = N;
 		size_t s = static_cast<size_t>(N + 0);
 		r->B = new X[s];
 		for (int64_t i = 0; i < N; i++)
-			r->B[i] = ArrayBuilder<T,n-1>().newArrayRec_(n_,b);
+			r->B[i] = ArrayBuilder<T,n-1>::newArrayRec_(n_,b);
 		return r;
 	}
 };
 template<typename T>
 struct ArrayBuilder<T,1>{
-	std::shared_ptr<Array_<T>> newArrayRec_(int64_t n_,const int64_t* b) noexcept {
+	static std::shared_ptr<Array_<T>> newArrayRec_(int64_t n_,const int64_t* b) noexcept {
 		std::shared_ptr<Array_<T>> r(new Array_<T>());
 		int64_t N = b[n_-1];
 		r->L = N;
@@ -351,7 +351,7 @@ template<typename T, size_t n, typename R> R newArray_(int64_t _, ...) noexcept 
 	for (int64_t i = 0; i < n; i++)
 		b[i] = va_arg(l, int64_t);
 	va_end(l);
-	return ArrayBuilder<T,n>().newArrayRec_(n, b);
+	return ArrayBuilder<T,n>::newArrayRec_(n, b);
 }
 
 template<typename T> std::shared_ptr<Array_<T>> toArray_(List_<T>* l) noexcept {
