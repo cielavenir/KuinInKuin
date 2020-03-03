@@ -494,7 +494,7 @@ static Array_<char16_t>* toStr_(bool v) noexcept {
 }
 static Array_<char16_t>* toStr_(double v) noexcept {
 	std::stringstream s;
-	s << v;
+	s << std::setprecision(16) << v;
 	const std::string& t = s.str();
 	Array_<char16_t>* r = new Array_<char16_t>();
 	r->L = static_cast<int64_t>(t.size());
