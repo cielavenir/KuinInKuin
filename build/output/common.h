@@ -17,6 +17,7 @@
 
 template<typename T> size_t bufLen_() noexcept { return 0; }
 template<> size_t bufLen_<char16_t>() noexcept { return 1; }
+int exit_code_ = 0;
 
 struct Ref_;
 struct Class_;

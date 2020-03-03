@@ -711,6 +711,7 @@
 		do codes.add("document.body.appendChild(c_);\n")
 		do codes.add("\{me_.id}.\{handle.id}={C:c_};\n")
 		do codes.add("return \{me_.id};\n")
+<<<<<<< HEAD
 	case "cui_inputLetter"
 		; TODO:
 	case "math_bellmanFord"
@@ -732,6 +733,9 @@
 	case "toStrFmtInt"
 		; TODO:
 	case "exist"
+=======
+	case "exit_code"
+>>>>>>> ciel/exit_code
 		; TODO:
 	default
 		assert false

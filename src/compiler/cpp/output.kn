@@ -1363,7 +1363,7 @@ func write(resFiles: list<[]char>)
 		end block
 		do writer.writeStr("init_();\n")
 		do writer.writeStr("k_a();\n")
-		do writer.writeStr("return 0;\n")
+		do writer.writeStr("return exit_code_;\n")
 		do writer.writeStr("}\n")
 	end func
 end func
