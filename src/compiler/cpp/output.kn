@@ -94,11 +94,11 @@ func buildFunc(ast: \ast@AstFunc)
 	elif(ast.funcOption.and(%rme) = %rme)
 		do retType :: "T_"
 	elif(ast.funcOption.and(%rac) = %rac)
-		do retType :: "Array_<C_>*"
+		do retType :: "std::shared_ptr<Array_<C_>>"
 	elif(ast.funcOption.and(%rak) = %rak)
-		do retType :: "Array_<K_>*"
+		do retType :: "std::shared_ptr<Array_<K_>>"
 	elif(ast.funcOption.and(%rav) = %rav)
-		do retType :: "Array_<V_>*"
+		do retType :: "std::shared_ptr<Array_<V_>>"
 	else
 		do retType :: @getType(ast.ret_)
 	end if
@@ -987,7 +987,7 @@ end func
 
 func buildExprNewArray(ast: \ast@AstExprNewArray)
 	assert ast.varKind <> %unknown
-	do @codes.add("newArray_<\{@getType(ast.itemType)}, \{@getType(ast.type)}>(\{^ast.idces}")
+	do @codes.add("newArray_<\{@getType(ast.itemType)}, \{^ast.idces}, \{@getType(ast.type)}>(\{^ast.idces}")
 	block
 		var items: list<\ast@AstExpr> :: ast.idces
 		do items.head()
@@ -1220,11 +1220,11 @@ end func
 
 func buildExprValueStr(ast: \ast@AstExprValueStr)
 	var value: []char :: ast.value
-	var s: []char :: "new Array_<char16_t>(\{^value}"
+	var s: []char :: "std::shared_ptr<Array_<char16_t>>(new Array_<char16_t>(\{^value}"
 	for i(0, ^value - 1)
 		do s :~ ", u'\\u\{(value[i] $ bit16).toStr().sub(2, -1)}'"
 	end for
-	do s :~ ")"
+	do s :~ "))"
 	do @codes.add(s)
 end func
 
@@ -1241,7 +1241,7 @@ end func
 
 func buildExprValueArray(ast: \ast@AstExprValueArray)
 	; Note that constant string values are handled by 'ExprValueStr'.
-	do @codes.add("new Array_<\{@getType((ast.type $ \ast@AstTypeArray).itemType)}>(\{^ast.values}")
+	do @codes.add("std::shared_ptr<Array_<\{@getType((ast.type $ \ast@AstTypeArray).itemType)}>>(new Array_<\{@getType((ast.type $ \ast@AstTypeArray).itemType)}>(\{^ast.values}")
 	var items: list<\ast@AstExpr> :: ast.values
 	do items.head()
 	while(!items.term())
@@ -1250,7 +1250,7 @@ func buildExprValueArray(ast: \ast@AstExprValueArray)
 		do @codes.add(")")
 		do items.next()
 	end while
-	do @codes.add(")")
+	do @codes.add("))")
 end func
 
 func buildExprRef(ast: \ast@AstExpr)
@@ -1374,7 +1374,7 @@ func getType(type: \ast@AstType): []char
 	end if
 	switch(type.typeId)
 	case %typeArray
-		ret "Array_<\{@getType((type $ \ast@AstTypeArray).itemType)}>*"
+		ret "std::shared_ptr<Array_<\{@getType((type $ \ast@AstTypeArray).itemType)}>>"
 	case %typeBit
 		ret "uint\{(type $ \ast@AstTypeBit).size * 8}_t"
 	case %typeFunc
